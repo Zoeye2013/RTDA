@@ -73,7 +73,10 @@
                     android:layout_marginRight="16dp"
                     android:layout_alignParentRight="true"
                     android:text="@string/action_sign_in"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:background="#009a9a"
+                    android:textColor="#d9e5f3"
+                    android:letterSpacing="0.2"/>
                 <Button
                     android:id="@+id/register_button"
                     style="?android:textAppearanceSmall"
@@ -83,7 +86,10 @@
                     android:layout_marginRight="16dp"
                     android:layout_toLeftOf="@+id/sign_in_button"
                     android:text="@string/action_register"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:background="#009a9a"
+                    android:textColor="#d9e5f3"
+                    android:letterSpacing="0.2"/>
             </RelativeLayout>
         </LinearLayout>
     </ScrollView>

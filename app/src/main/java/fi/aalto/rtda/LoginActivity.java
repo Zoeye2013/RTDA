@@ -81,7 +81,7 @@ public class LoginActivity extends AppCompatActivity{
     private UserRegisterOrLoginTask authTask = null;
 
     /*  UI references. */
-    private AutoCompleteTextView usernameView;
+    private EditText usernameView;
     private EditText passwordView;
     private View progressView;
     private View loginFormView;
@@ -107,7 +107,7 @@ public class LoginActivity extends AppCompatActivity{
             setContentView(R.layout.activity_login);
 
             // Set up the login form.
-            usernameView = (AutoCompleteTextView) findViewById(R.id.username);
+            usernameView = (EditText) findViewById(R.id.username);
             passwordView = (EditText) findViewById(R.id.password);
 
             signInButton = (Button) findViewById(R.id.sign_in_button);

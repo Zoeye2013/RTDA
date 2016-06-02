@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">RTDA</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_username">Username</string>
+    <string name="prompt_password">Password</string>
+
+    <string name="action_sign_in">Sign in</string>
+    <string name="action_register">Register</string>
+
+    <string name="error_invalid_username">This username is too short</string>
+    <string name="error_exsit_username">This username is occupied</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_username_or_password">Username or password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    completions."
+    <string name="title_activity_register">Welcome</string>
+    <string name="title_activity_home">RTDA</string>
+    <string name="title_header_welcome_logged_in_user">Welcome!</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+</resources>

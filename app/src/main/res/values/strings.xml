@@ -29,4 +29,11 @@
     <string name="action_stop_training">Stop Training</string>
     <string name="action_start_measurement">Start measurement</string>
     <string name="action_stop_measurement">Stop measurement</string>
+
+    <!-- Strings related to Bluetooth manage class -->
+    <string name="error_no_bluetooth">Sorry, this device has no Bluetooth.</string>
+    <string name="title_activity_bluetooth_training">BluetoothTrainingActivity</string>
+    <string name="prompt_site_name">Enter site name of measurement:</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_remove">Remove</string>
 </resources>

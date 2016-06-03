@@ -13,6 +13,7 @@
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_username_or_password">Username or password is incorrect</string>
     <string name="error_field_required">This field is required</string>
+    <string name="error_sd_card_not_available">Phone\'s SDCard not available, data wont\'s be stored locally!</string>
     completions."
     <string name="title_activity_register">Welcome</string>
     <string name="title_activity_home">RTDA</string>
@@ -32,8 +33,13 @@
 
     <!-- Strings related to Bluetooth manage class -->
     <string name="error_no_bluetooth">Sorry, this device has no Bluetooth.</string>
-    <string name="title_activity_bluetooth_training">BluetoothTrainingActivity</string>
-    <string name="prompt_site_name">Enter site name of measurement:</string>
+    <string name="title_activity_bluetooth_training">Training devices</string>
+    <string name="hint_enter_site_name">Enter site name to save </string>
+    <string name="hint_allowed_devices"> allowed devices:</string>
+    <string name="prompt_site_name">Site name</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_remove">Remove</string>
+    <string name="action_save_allowed_devices">Save allowed devices</string>
+
+    <string name="error_allowed_file_exist">Measurement site name is occupied.</string>
 </resources>

@@ -16,6 +16,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 
 /**
@@ -30,10 +32,12 @@ public class BluetoothHandleClass {
     public static final int BLUETOOTH_STATE_MEASURING = 2;
     private int bluetoothDetectState;
     private boolean continueInquiry;
+    private boolean isTrainingStopped;
 
     private ArrayList<BluetoothDevice> allowedDevices;
     private AllowedDevicesAdapter allowedDevicesAdapter;
     private BTBroadcastReceiver btReceiver;
+    private TextView textView;
 
 
     public BluetoothHandleClass(Context context){
@@ -43,7 +47,18 @@ public class BluetoothHandleClass {
         allowedDevices = new ArrayList<BluetoothDevice>();
         allowedDevicesAdapter = new AllowedDevicesAdapter(appContext,allowedDevices);
         btReceiver = new BTBroadcastReceiver();
+        isTrainingStopped = false;
+    }
 
+    public BluetoothHandleClass(Context context, TextView view){
+        appContext = context;
+        textView = view;
+        bluetoothDetectState = BLUETOOTH_STATE_IDLE;
+        continueInquiry = true;
+        allowedDevices = new ArrayList<BluetoothDevice>();
+        allowedDevicesAdapter = new AllowedDevicesAdapter(appContext,allowedDevices);
+        btReceiver = new BTBroadcastReceiver();
+        isTrainingStopped = false;
     }
 
     public  AllowedDevicesAdapter getAllowedDevicesAdapter(){
@@ -64,28 +79,65 @@ public class BluetoothHandleClass {
             Toast toast = Toast.makeText(appContext, R.string.error_no_bluetooth, Toast.LENGTH_LONG);
             btSuccessful = false;
         }
+        return btSuccessful;
+    }
+
+    public void enableBTAdapter(){
         if(!bluetoothAdapter.isEnabled())
         {
             /** Call enable() to enable Bluetooth without request for user permission
              *  This requires android.permission.BLUETOOTH_ADMIN Permission */
             bluetoothAdapter.enable();
+            Log.i("New Device: ","enable adapter");
         }
-        return btSuccessful;
+    }
+
+    public void disableBTAdapter(){
+        bluetoothAdapter.disable();
     }
 
     public void startDiscovery(int state){
         continueInquiry = true;
         bluetoothAdapter.startDiscovery();
         bluetoothDetectState = state;
+    }
+
+    public void cancelDiscovery(){
+        continueInquiry = false;
+        if( bluetoothAdapter!= null)
+        {
+            bluetoothAdapter.cancelDiscovery();
+        }
+    }
+
+    public void stopTraining(){
+        cancelDiscovery();
+        isTrainingStopped = true;
+        allowedDevicesAdapter.notifyDataSetChanged();
+    }
+
+    public void clearAlllowedDevices(){
+        Log.i("New Device","Clear list");
         allowedDevices.clear();
+    }
+
+    public int getAllowedDevicesNumber(){
+        return allowedDevices.size();
+    }
+
+    public ArrayList<BluetoothDevice> getAllowedDevices(){
+        return allowedDevices;
     }
 
     public void addAllowedDevice(BluetoothDevice device){
         if(!allowedDevices.contains(device)){
             allowedDevices.add(device);
             allowedDevicesAdapter.notifyDataSetChanged();
+            Log.i("New Device",Integer.toString(allowedDevices.size()));
         }
     }
+
+
 
     /** Inner class Broadcast receiver listen to Bluetooth discovering results */
     public class BTBroadcastReceiver extends BroadcastReceiver {
@@ -105,7 +157,10 @@ public class BluetoothHandleClass {
                     /** When use starts training allowed devices sets,
                         newly discovered devices will be recorded as allowed devices */
                     case BLUETOOTH_STATE_TRAINING:
-                        addAllowedDevice(device);
+                        if(!isTrainingStopped){
+                            addAllowedDevice(device);
+                            Log.i("New Device","new device found");
+                        }
                         break;
                     /** When user start measuring, the application starts recording activity records */
                     case BLUETOOTH_STATE_MEASURING:
@@ -126,6 +181,26 @@ public class BluetoothHandleClass {
                 if(continueInquiry == true) {
                     bluetoothAdapter.startDiscovery();
                 }
+            }else if(BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)){
+                int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
+                switch (state){
+                    case BluetoothAdapter.STATE_OFF:
+                        //Indicates the local Bluetooth adapter is off.
+                        break;
+
+                    case BluetoothAdapter.STATE_TURNING_ON:
+                        //Indicates the local Bluetooth adapter is turning on. However local clients should wait for STATE_ON before attempting to use the adapter.
+                        break;
+
+                    case BluetoothAdapter.STATE_ON:
+                        Log.i("New Device: ","adapter on");
+                        startDiscovery(BLUETOOTH_STATE_TRAINING);
+                        break;
+
+                    case BluetoothAdapter.STATE_TURNING_OFF:
+                        //Indicates the local Bluetooth adapter is turning off. Local clients should immediately attempt graceful disconnection of any remote links.
+                        break;
+                }
             }
         }
     }
@@ -137,7 +212,7 @@ public class BluetoothHandleClass {
         }
 
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+        public View getView(final int position, View convertView, ViewGroup parent) {
             BluetoothDevice allowedDevice = getItem(position);
             if(convertView == null){
                 convertView = LayoutInflater.from(getContext()).inflate(R.layout.allowed_device_item,parent,false);
@@ -149,9 +224,16 @@ public class BluetoothHandleClass {
             removeButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+                    allowedDevices.remove(position);
+                    allowedDevicesAdapter.notifyDataSetChanged();
+                    textView.setText(" " + allowedDevices.size() + " ");
                 }
             });
+            if(!isTrainingStopped){
+                removeButton.setVisibility(View.GONE);
+            }else{
+                removeButton.setVisibility(View.VISIBLE);
+            }
 
             //Set device icon according to device type
             int deviceClass = allowedDevice.getBluetoothClass().getMajorDeviceClass();

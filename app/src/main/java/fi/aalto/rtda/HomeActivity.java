@@ -30,12 +30,13 @@ public class HomeActivity extends AppCompatActivity
     //UI
     private Button trainingBtn;
     private Button measurementBtn;
+    private String currUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-        String currUser = getIntent().getStringExtra(LoginActivity.SHARED_KEY_LOGGED_USER);
+        currUser = getIntent().getStringExtra(LoginActivity.SHARED_KEY_LOGGED_USER);
 
         sharedPref = appContext.getSharedPreferences(LoginActivity.SHAREDPREFERENCES,Context.MODE_PRIVATE);
         editor = sharedPref.edit();
@@ -104,6 +105,7 @@ public class HomeActivity extends AppCompatActivity
             case R.id.start_training_button:
                 if(BluetoothHandleClass.openBTAdapter(appContext)){
                     Intent intent = new Intent(appContext,BluetoothTrainingActivity.class);
+                    intent.putExtra(LoginActivity.SHARED_KEY_LOGGED_USER,currUser);
                     startActivity(intent);
                 }
                 break;

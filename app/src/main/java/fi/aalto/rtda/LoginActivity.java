@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -23,6 +24,7 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -34,6 +36,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -70,7 +73,7 @@ public class LoginActivity extends AppCompatActivity{
     public static final String KEY_PASSWORD = "password";
     private static final int ACTION_REGISTER = 1;
     private static final int ACTION_LOGIN = 2;
-    private static final String RESPONSE_USER_EXIST = "Username exists";
+    private static final String RESPONSE_USER_EXIST = "Could not register";
     private static final String RESPONSE_REGISTER_SUCCESS = "Successfully Registered";
     private static final String RESPONSE_LOGIN_FAILURE = "Login failure";
     private static final String RESPONSE_LOGIN_SUCCESS = "Login success";
@@ -96,11 +99,24 @@ public class LoginActivity extends AppCompatActivity{
     public static final String SHARED_KEY_PASSWORD = "password";
     public static final String SHARED_KEY_SERVER_TIME = "servertime";
 
+    /* Save files on phone storage */
+    /** Folder or file names of modules in the App */
+    private String appHomePath;
+    /** Phone SDcard Path */
+    public static final String sdCardPath = Environment.getExternalStorageDirectory().toString();
+    /** Hospital Helper Home Folder */
+    public static final String appHomeFolder = "RTDA";
+    /** Folders for Bluetooth Process Data Acquisition Module */
+    public static final String rtdaAllowedFolder = "Allowed_Devices";
+    public static final String rtdaSignalVectorFolder = "Signal_Vectors";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         sharedPref = appContext.getSharedPreferences(SHAREDPREFERENCES,Context.MODE_PRIVATE);
         editor = sharedPref.edit();
+
+        createAppHomeFolder();
 
         String currUser = sharedPref.getString(SHARED_KEY_LOGGED_USER,"");
         if(!checkIfUserLoggedIn(currUser)){
@@ -128,6 +144,7 @@ public class LoginActivity extends AppCompatActivity{
             loginFormView = findViewById(R.id.login_form);
             progressView = findViewById(R.id.login_progress);
         }else{
+            createUserFolders(currUser);
             Intent intent = new Intent(appContext,HomeActivity.class);
             intent.putExtra(SHARED_KEY_LOGGED_USER,currUser);
             startActivity(intent);
@@ -272,6 +289,14 @@ public class LoginActivity extends AppCompatActivity{
                                 usernameView.requestFocus();
                             }else if(response.trim().equals(RESPONSE_REGISTER_SUCCESS)){
                                 Toast.makeText(appContext, response, Toast.LENGTH_LONG).show();
+                                createUserFolders(username);
+                                editor.putString(SHARED_KEY_LOGGED_USER,username);
+                                editor.putString(SHARED_KEY_PASSWORD,password);
+                                editor.commit();
+                                Intent intent = new Intent(appContext,HomeActivity.class);
+                                intent.putExtra(SHARED_KEY_LOGGED_USER,username);
+                                startActivity(intent);
+                                finish();
                             }
                             break;
                         case ACTION_LOGIN:
@@ -355,6 +380,48 @@ public class LoginActivity extends AppCompatActivity{
         protected void onCancelled() {
             authTask = null;
             showProgress(false);
+        }
+    }
+
+    /** Create Application Home folder if it doesn't exist */
+    public void createAppHomeFolder()
+    {
+        /** If Phone's SDcard is available, then create Home folder for the application */
+        if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
+        {
+            appHomePath = Environment.getExternalStorageDirectory() + "/" + appHomeFolder;
+            File homeDir = new File(appHomePath);
+            if(!homeDir.exists())
+            {
+                Log.i("RTDA", "create App home folder");
+                homeDir.mkdir();
+            }
+        }
+        /** If SDcard is not available, inform user
+         * 	that data will not be saved and end the application */
+        else {
+            Toast toast = Toast.makeText(appContext, R.string.error_sd_card_not_available, Toast.LENGTH_LONG);
+            toast.show();
+        }
+    }
+
+    public void createUserFolders(String userName){
+        if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            String userFolderPath = Environment.getExternalStorageDirectory()+ "/" + appHomeFolder + "/" + userName;
+            File userDir = new File(userFolderPath);
+            if(!userDir.exists()) {
+                userDir.mkdir();
+
+                String folderDir = userFolderPath + "/" + rtdaAllowedFolder;
+                File temp = new File(folderDir);
+                if(!temp.exists())
+                    temp.mkdir();
+
+                folderDir = userFolderPath + "/" + rtdaSignalVectorFolder;
+                temp = new File(folderDir);
+                if(!temp.exists())
+                    temp.mkdir();
+            }
         }
     }
 }

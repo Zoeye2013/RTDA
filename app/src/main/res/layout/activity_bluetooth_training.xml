@@ -5,63 +5,115 @@
     android:layout_height="match_parent"
     tools:context="fi.aalto.rtda.BluetoothTrainingActivity">
 
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/layout_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@drawable/side_nav_bar"/>
+    </android.support.design.widget.AppBarLayout>
+
+    <!-- Login progress -->
+    <ProgressBar
+        android:id="@+id/enable_bluetooth_progress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone"
+        android:layout_centerInParent="true"/>
+    <LinearLayout
+        android:id="@+id/layout_hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_below="@id/layout_toolbar"
+        android:visibility="gone">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/hint_enter_site_name"
+            android:textSize="14dp"/>
+        <TextView
+            android:id="@+id/allowed_devices_num"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16dp"
+            android:textColor="@color/colorAccent"
+            android:textStyle="bold"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/hint_allowed_devices"
+            android:textSize="14dp"/>
+    </LinearLayout>
     <android.support.design.widget.TextInputLayout
         android:id="@+id/layout_site_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true">
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_below="@id/layout_hint">
 
         <EditText
             android:id="@+id/site_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/prompt_site_name"
-            android:paddingLeft="16dp"
             android:inputType="text"
             android:maxLines="1"
-            android:singleLine="true" />
+            android:singleLine="true"
+            android:visibility="gone"/>
     </android.support.design.widget.TextInputLayout>
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/layout_icons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true">
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:orientation="vertical">
         <Button
-            android:id="@+id/stop_measurement_button"
+            android:id="@+id/stop_training_button"
             style="?android:textAppearanceSmall"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
-            android:layout_margin="16dp"
             android:text="@string/action_stop_training"
             android:textStyle="bold"
             android:background="#009a9a"
             android:textColor="#d9e5f3"
             android:letterSpacing="0.2"/>
         <Button
-            android:id="@+id/cancel_button"
+            android:id="@+id/save_button"
             style="?android:textAppearanceSmall"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/action_cancel"
-            android:layout_margin="16dp"
-            android:layout_toLeftOf="@id/stop_measurement_button"
+            android:layout_alignParentRight="true"
+            android:text="@string/action_save_allowed_devices"
             android:textStyle="bold"
             android:background="#009a9a"
             android:textColor="#d9e5f3"
-            android:letterSpacing="0.2"/>
-    </RelativeLayout>
-    <ScrollView
+            android:letterSpacing="0.2"
+            android:visibility="gone"/>
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/list_bluetooth_device"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/layout_site_name"
-        android:layout_above="@id/layout_icons">
-
-        <ListView
-            android:id="@+id/list_bluetooth_device"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-        </ListView>
-    </ScrollView>
+        android:layout_above="@id/layout_icons"
+        android:layout_margin="16dp">
+    </ListView>
 </RelativeLayout>

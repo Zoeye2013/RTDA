@@ -10,6 +10,8 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -45,6 +47,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -256,6 +259,7 @@ public class BluetoothTrainingActivity extends AppCompatActivity implements View
         }
     }
 
+    /* Save to External storage as csv file */
     public void saveToPhoneStorage(ArrayList<BluetoothDevice> allowedDevices){
         String allowedDeviceInfo = "";
         try {
@@ -285,6 +289,29 @@ public class BluetoothTrainingActivity extends AppCompatActivity implements View
         } catch (IOException e1) {
             fileSavedSuccessfully = false;
             e1.printStackTrace();
+        }
+    }
+
+    public void saveToServer(ArrayList<BluetoothDevice> allowedDevices){
+        //Save to Internal storage
+        JSONArray allowedDevicesJSON = new JSONArray(allowedDevices);
+        String allowedDeviceInfo = allowedDevicesJSON.toString();
+        String fileName = currUser + "_" + siteName;
+        try {
+            FileOutputStream fileOutPut = openFileOutput(fileName, Context.MODE_PRIVATE);
+            fileOutPut.write(allowedDeviceInfo.getBytes());
+            fileOutPut.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+
+        //Sending allowed devices list to Server
+        ConnectivityManager connectManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo wifiInfo = connectManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        if(wifiInfo.isConnected()){
+
         }
     }
 }

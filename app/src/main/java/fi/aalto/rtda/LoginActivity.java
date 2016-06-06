@@ -73,15 +73,12 @@ public class LoginActivity extends AppCompatActivity{
     public static final String KEY_PASSWORD = "password";
     private static final int ACTION_REGISTER = 1;
     private static final int ACTION_LOGIN = 2;
-    private static final String RESPONSE_USER_EXIST = "Could not register";
+    private static final String RESPONSE_USER_EXIST = "Username exists";
     private static final String RESPONSE_REGISTER_SUCCESS = "Successfully Registered";
     private static final String RESPONSE_LOGIN_FAILURE = "Login failure";
     private static final String RESPONSE_LOGIN_SUCCESS = "Login success";
 
     private final Context appContext = this;
-
-    /** Keep track of the login task to ensure we can cancel it if requested. */
-    private UserRegisterOrLoginTask authTask = null;
 
     /*  UI references. */
     private EditText usernameView;
@@ -203,9 +200,7 @@ public class LoginActivity extends AppCompatActivity{
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            authTask = new UserRegisterOrLoginTask(username, password,actionCode);
-            authTask.execute((Void) null);
-
+            UserRegisterOrLoginTask(username,password,actionCode);
         }
     }
 
@@ -254,133 +249,102 @@ public class LoginActivity extends AppCompatActivity{
         }
     }
 
-    /** Represents an asynchronous login/registration task used to authenticate the user.  */
-    public class UserRegisterOrLoginTask extends AsyncTask<Void, Void, Boolean> {
-
-        private final String username;
-        private final String password;
-        private final int actionCode;
-
-        UserRegisterOrLoginTask(String user, String pwd, int action) {
-            username = user;
-            password = pwd;
-            actionCode = action;
+    public void UserRegisterOrLoginTask(String user, String pwd, int action){
+        final String username = user;
+        final String password = pwd;
+        final int actionCode = action;
+        String requstURL = LOGIN_URL;
+        switch (actionCode){
+            case ACTION_REGISTER:
+                requstURL = REGISTER_URL;
+                break;
+            case ACTION_LOGIN:
+                requstURL = LOGIN_URL;
+                break;
         }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            String requstURL = LOGIN_URL;
-            switch (actionCode){
-                case ACTION_REGISTER:
-                    requstURL = REGISTER_URL;
-                    break;
-                case ACTION_LOGIN:
-                    requstURL = LOGIN_URL;
-                    break;
-            }
-            StringRequest stringRequest = new StringRequest(Request.Method.POST, requstURL, new Response.Listener<String>(){
-                @Override
-                public void onResponse(String response) {
-                    showProgress(false);
-                    switch(actionCode){
-                        case ACTION_REGISTER:
-                            if(response.trim().equals(RESPONSE_USER_EXIST)){
-                                usernameView.setError(getString(R.string.error_exsit_username));
-                                usernameView.requestFocus();
-                            }else if(response.trim().equals(RESPONSE_REGISTER_SUCCESS)){
-                                Toast.makeText(appContext, response, Toast.LENGTH_LONG).show();
-                                createUserFolders(username);
-                                editor.putString(SHARED_KEY_LOGGED_USER,username);
-                                editor.putString(SHARED_KEY_PASSWORD,password);
-                                editor.commit();
-                                Intent intent = new Intent(appContext,HomeActivity.class);
-                                intent.putExtra(SHARED_KEY_LOGGED_USER,username);
-                                startActivity(intent);
-                                finish();
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, requstURL, new Response.Listener<String>(){
+            @Override
+            public void onResponse(String response) {
+                showProgress(false);
+                switch(actionCode){
+                    case ACTION_REGISTER:
+                        if(response.trim().equals(RESPONSE_USER_EXIST)){
+                            usernameView.setError(getString(R.string.error_exsit_username));
+                            usernameView.requestFocus();
+                        }else if(response.trim().equals(RESPONSE_REGISTER_SUCCESS)){
+                            Toast.makeText(appContext, response, Toast.LENGTH_LONG).show();
+                            createUserFolders(username);
+                            editor.putString(SHARED_KEY_LOGGED_USER,username);
+                            editor.putString(SHARED_KEY_PASSWORD,password);
+                            editor.commit();
+                            Intent intent = new Intent(appContext,HomeActivity.class);
+                            intent.putExtra(SHARED_KEY_LOGGED_USER,username);
+                            startActivity(intent);
+                            finish();
+                        }else{
+                            Toast.makeText(appContext, response, Toast.LENGTH_LONG).show();
+                        }
+                        break;
+                    case ACTION_LOGIN:
+                        if(response.trim().equals(RESPONSE_LOGIN_FAILURE)){
+                            passwordView.setError(getString(R.string.error_incorrect_username_or_password));
+                            passwordView.requestFocus();
+                        }else if(response.trim().contains(RESPONSE_LOGIN_SUCCESS)){
+                            double serverTime = 0;
+                            editor.putString(SHARED_KEY_LOGGED_USER,username);
+                            editor.putString(SHARED_KEY_PASSWORD,password);
+                            editor.putLong(SHARED_KEY_SERVER_TIME,Double.doubleToRawLongBits(serverTime));
+                            editor.commit();
+                            try {
+                                JSONObject jsonObject = new JSONObject(response);
+                                serverTime = jsonObject.getDouble("Login success");
+                            } catch (JSONException e) {
+                                e.printStackTrace();
                             }
-                            break;
-                        case ACTION_LOGIN:
-                            if(response.trim().equals(RESPONSE_LOGIN_FAILURE)){
-                                passwordView.setError(getString(R.string.error_incorrect_username_or_password));
-                                passwordView.requestFocus();
-                            }else if(response.trim().contains(RESPONSE_LOGIN_SUCCESS)){
-                                double serverTime = 0;
-                                editor.putString(SHARED_KEY_LOGGED_USER,username);
-                                editor.putString(SHARED_KEY_PASSWORD,password);
-                                editor.putLong(SHARED_KEY_SERVER_TIME,Double.doubleToRawLongBits(serverTime));
-                                editor.commit();
-                                try {
-                                    JSONObject jsonObject = new JSONObject(response);
-                                    serverTime = jsonObject.getDouble("Login success");
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                                Toast.makeText(appContext, RESPONSE_LOGIN_SUCCESS, Toast.LENGTH_LONG).show();
-                                Intent intent = new Intent(appContext,HomeActivity.class);
-                                intent.putExtra(SHARED_KEY_LOGGED_USER,username);
-                                startActivity(intent);
-                                finish();
-                            }
-                            break;
-                    }
+                            Toast.makeText(appContext, RESPONSE_LOGIN_SUCCESS, Toast.LENGTH_LONG).show();
+                            Intent intent = new Intent(appContext,HomeActivity.class);
+                            intent.putExtra(SHARED_KEY_LOGGED_USER,username);
+                            startActivity(intent);
+                            finish();
+                        }
+                        break;
                 }
-            }, new Response.ErrorListener(){
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    if (error != null) {
-                        Log.e("Volley", "Error. HTTP Status Code:"+error.toString());
-                    }
-
-                    if (error instanceof TimeoutError) {
-                        Log.e("Volley", "TimeoutError");
-                    }else if(error instanceof NoConnectionError){
-                        Log.e("Volley", "NoConnectionError");
-                    } else if (error instanceof AuthFailureError) {
-                        Log.e("Volley", "AuthFailureError");
-                    } else if (error instanceof ServerError) {
-                        Log.e("Volley", "ServerError");
-                    } else if (error instanceof NetworkError ) {
-                        Log.e("Volley", "NetworkError");
-                    } else if (error instanceof ParseError) {
-                        Log.e("Volley", "ParseError");
-                    }
-                    Toast.makeText(appContext,error.toString(),Toast.LENGTH_LONG).show();
-                    showProgress(false);
-                }
-            }){
-                @Override
-                protected Map<String, String> getParams() throws AuthFailureError {
-                    Map<String,String> params = new HashMap<String, String>();
-                    params.put(KEY_USERNAME,username);
-                    params.put(KEY_PASSWORD,password);
-                    return params;
-                }
-            };
-
-            RequestQueue requestQueue = Volley.newRequestQueue(appContext);
-            requestQueue.add(stringRequest);
-
-            return true;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            authTask = null;
-            //showProgress(false);
-
-            if (success) {
-                //finish();
-            } else {
-                //passwordView.setError(getString(R.string.error_incorrect_password));
-                //passwordView.requestFocus();
             }
-        }
+        }, new Response.ErrorListener(){
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                if (error != null) {
+                    Log.e("Volley", "Error. HTTP Status Code:"+error.toString());
+                }
 
-        @Override
-        protected void onCancelled() {
-            authTask = null;
-            showProgress(false);
-        }
+                if (error instanceof TimeoutError) {
+                    Log.e("Volley", "TimeoutError");
+                }else if(error instanceof NoConnectionError){
+                    Log.e("Volley", "NoConnectionError");
+                } else if (error instanceof AuthFailureError) {
+                    Log.e("Volley", "AuthFailureError");
+                } else if (error instanceof ServerError) {
+                    Log.e("Volley", "ServerError");
+                } else if (error instanceof NetworkError ) {
+                    Log.e("Volley", "NetworkError");
+                } else if (error instanceof ParseError) {
+                    Log.e("Volley", "ParseError");
+                }
+                Toast.makeText(appContext,error.toString(),Toast.LENGTH_LONG).show();
+                showProgress(false);
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String,String> params = new HashMap<String, String>();
+                params.put(KEY_USERNAME,username);
+                params.put(KEY_PASSWORD,password);
+                return params;
+            }
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(appContext);
+        requestQueue.add(stringRequest);
     }
 
     /** Create Application Home folder if it doesn't exist */
@@ -406,6 +370,7 @@ public class LoginActivity extends AppCompatActivity{
     }
 
     public void createUserFolders(String userName){
+        /* Folders in the external storage */
         if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             String userFolderPath = Environment.getExternalStorageDirectory()+ "/" + appHomeFolder + "/" + userName;
             File userDir = new File(userFolderPath);

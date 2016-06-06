@@ -44,6 +44,7 @@ import com.android.volley.Response;
 import com.android.volley.ServerError;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
@@ -78,6 +79,13 @@ public class BluetoothTrainingActivity extends AppCompatActivity implements View
     private String siteName;
 
     private boolean fileSavedSuccessfully = false;
+
+    //Keys for transfering data to server
+    public static final String KEY_USERNAME = "username";
+    public static final String KEY_SITENAME = "sitename";
+    public static final String KEY_ALLOWEDDEVICES = "alloweddevices";
+    private static final String RESPONSE_SAVE_SUCCESSFUL = "Allowed devices saved";
+    private static final String RESPONSE_SAVE_FAILED = "Save allowed devices failed";
 
     public static final String FILE_SAVED = "File saved successfully.";
 
@@ -178,10 +186,20 @@ public class BluetoothTrainingActivity extends AppCompatActivity implements View
             focusView.requestFocus();
             cancel = true;
         }else{
-            String sdPath = Environment.getExternalStorageDirectory() + "/";
-            File file = new File(sdPath + LoginActivity.appHomeFolder + "/" + currUser +
-                    "/" + LoginActivity.rtdaAllowedFolder + "/" + siteName + ".csv");
+            /* External option */
+            /*String sdPath = Environment.getExternalStorageDirectory() + "/";
+            //File file = new File(sdPath + LoginActivity.appHomeFolder + "/" + currUser + "/" + LoginActivity.rtdaAllowedFolder + "/" + siteName + ".csv");
             if(file.exists()){
+                siteNameView.setError(getString(R.string.error_allowed_file_exist));
+                focusView = siteNameView;
+                focusView.requestFocus();
+                cancel = true;
+            }*/
+
+            /* Internal Option */
+            File userDir  = appContext.getDir(currUser, Context.MODE_PRIVATE);
+            File fileName = new File(userDir,siteName);
+            if(fileName.exists()) {
                 siteNameView.setError(getString(R.string.error_allowed_file_exist));
                 focusView = siteNameView;
                 focusView.requestFocus();
@@ -195,8 +213,12 @@ public class BluetoothTrainingActivity extends AppCompatActivity implements View
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            saveTask = new SaveAllowedDevicesTask(bluetoothManage.getAllowedDevices());
-            saveTask.execute((Void) null);
+            saveToServer(bluetoothManage.getAllowedDevices());
+
+            /*  Choose only one option save to internal or external */
+            //saveTask = new SaveAllowedDevicesTask(bluetoothManage.getAllowedDevices());
+            //saveTask.execute((Void) null);
+
 
         }
     }
@@ -293,12 +315,14 @@ public class BluetoothTrainingActivity extends AppCompatActivity implements View
     }
 
     public void saveToServer(ArrayList<BluetoothDevice> allowedDevices){
-        //Save to Internal storage
+
         JSONArray allowedDevicesJSON = new JSONArray(allowedDevices);
+        //Save to Internal storage
         String allowedDeviceInfo = allowedDevicesJSON.toString();
-        String fileName = currUser + "_" + siteName;
         try {
-            FileOutputStream fileOutPut = openFileOutput(fileName, Context.MODE_PRIVATE);
+            File userDir  = appContext.getDir(currUser, Context.MODE_PRIVATE);
+            File fileName = new File(userDir,siteName);
+            FileOutputStream fileOutPut = new FileOutputStream(fileName);
             fileOutPut.write(allowedDeviceInfo.getBytes());
             fileOutPut.close();
         } catch (FileNotFoundException e) {
@@ -311,7 +335,58 @@ public class BluetoothTrainingActivity extends AppCompatActivity implements View
         ConnectivityManager connectManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo wifiInfo = connectManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
         if(wifiInfo.isConnected()){
+            String tempString = "";
+            for (BluetoothDevice s: allowedDevices){
+                tempString += s.toString() + "\t";
+            }
+            final String allowedDevicesString = tempString;
+            StringRequest stringRequest = new StringRequest(Request.Method.POST,SAVE_ALLOWED_URL,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            showProgress(false);
+                            Toast.makeText(appContext, response, Toast.LENGTH_LONG).show();
+                            if(response.trim().equals(RESPONSE_SAVE_SUCCESSFUL)){
+                                finish();
+                            }
+                        }
+                    }, new Response.ErrorListener(){
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            showProgress(false);
+                            if (error != null) {
+                                Log.e("Volley", "Error. HTTP Status Code:"+error.toString());
+                            }
 
+                            if (error instanceof TimeoutError) {
+                                Toast.makeText(appContext, "Timeout, please retry.", Toast.LENGTH_LONG).show();
+                            }else if(error instanceof NoConnectionError){
+                                Log.e("Volley", "NoConnectionError");
+                            } else if (error instanceof AuthFailureError) {
+                                Log.e("Volley", "AuthFailureError");
+                            } else if (error instanceof ServerError) {
+                                Log.e("Volley", "ServerError");
+                            } else if (error instanceof NetworkError ) {
+                                Log.e("Volley", "NetworkError");
+                            } else if (error instanceof ParseError) {
+                                Log.e("Volley", "ParseError");
+                            }
+                            Toast.makeText(appContext,error.toString(),Toast.LENGTH_LONG).show();
+                            showProgress(false);
+                        }
+            }){
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    Map<String,String> params = new HashMap<String, String>();
+                    params.put(KEY_USERNAME,currUser);
+                    params.put(KEY_SITENAME,siteName);
+                    params.put(KEY_ALLOWEDDEVICES,allowedDevicesString);
+                    return params;
+                }
+            };
+
+            RequestQueue requestQueue = Volley.newRequestQueue(appContext);
+            requestQueue.add(stringRequest);
         }
     }
 }

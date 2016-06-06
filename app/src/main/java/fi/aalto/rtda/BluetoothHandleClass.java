@@ -93,7 +93,8 @@ public class BluetoothHandleClass {
     }
 
     public void disableBTAdapter(){
-        bluetoothAdapter.disable();
+        if(bluetoothAdapter.isEnabled())
+            bluetoothAdapter.disable();
     }
 
     public void startDiscovery(int state){

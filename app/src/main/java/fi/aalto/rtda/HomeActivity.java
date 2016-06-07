@@ -111,11 +111,11 @@ public class HomeActivity extends AppCompatActivity
                     startActivity(intent);
                 }
                 break;
-            case R.id.stop_measurement_button:
+            case R.id.start_measurement_button:
+                Intent intent = new Intent(appContext, MeasureSiteSelectActivity.class);
+                intent.putExtra(LoginActivity.SHARED_KEY_LOGGED_USER,currUser);
+                startActivity(intent);
                 break;
         }
     }
-
-
-
 }

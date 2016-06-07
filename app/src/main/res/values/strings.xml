@@ -42,4 +42,8 @@
     <string name="action_save_allowed_devices">Save allowed devices</string>
 
     <string name="error_allowed_file_exist">Measurement site name is occupied.</string>
+    <string name="title_activity_measure_site_select">MeasureSiteSelectActivity</string>
+    
+    <!-- Strings related to Measurement site selecting page -->
+    <string name="hint_choose_site">Select site to start measurement:</string>
 </resources>

@@ -43,7 +43,11 @@
 
     <string name="error_allowed_file_exist">Measurement site name is occupied.</string>
     <string name="title_activity_measure_site_select">MeasureSiteSelectActivity</string>
-    
+
     <!-- Strings related to Measurement site selecting page -->
     <string name="hint_choose_site">Select site to start measurement:</string>
+    <string name="action_check_measurement">Check measurement</string>
+    <string name="hint_measurement_onging">Measurement is ongoing...</string>
+    <string name="title_activity_realtime_chart">RealtimeChartActivity</string>
+    <string name="hint_waiting_measurement">Waiting for measurement data...</string>
 </resources>

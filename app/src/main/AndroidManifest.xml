@@ -38,9 +38,17 @@
             android:label="@string/title_activity_bluetooth_training"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".MeasureSiteSelectActivity"
+            android:name=".MeasuringActivity"
             android:label="@string/title_activity_measure_site_select"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".RealtimeChartActivity"
+            android:label="@string/title_activity_realtime_chart"
+            android:theme="@style/AppTheme.NoActionBar" />
+
+        <service
+            android:name=".MeasuringIntentService"
+            android:exported="false"></service>
     </application>
 
 </manifest>

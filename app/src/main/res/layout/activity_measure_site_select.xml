@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="fi.aalto.rtda.MeasureSiteSelectActivity">
+    tools:context=".MeasuringActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/layout_toolbar"
@@ -30,46 +30,76 @@
         android:layout_below="@id/layout_toolbar"
         android:layout_margin="24dp"
         android:textSize="16dp"/>
+    <TextView
+        android:id="@+id/hint_measurement_ongoing"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="28dp"
+        android:layout_centerInParent="true"
+        android:text="@string/hint_measurement_onging"
+        android:visibility="gone"/>
 
-    <Button
-        android:id="@+id/start_measurement_button"
-        style="?android:textAppearanceSmall"
+    <LinearLayout
+        android:id="@+id/layout_icons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:text="@string/action_start_measurement"
-        android:textStyle="bold"
-        android:background="#009a9a"
-        android:textColor="#d9e5f3"
         android:layout_marginBottom="10dp"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
-        android:letterSpacing="0.2" />
-
-    <!--<ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scrollbars="none"
-        android:layout_below="@id/hint_choose_site"
-        android:layout_above="@id/start_measurement_button"
-        android:layout_marginBottom="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp">
-        <RadioGroup
-            android:id="@+id/radio_group_sites"
+        android:orientation="vertical">
+        <Button
+            android:id="@+id/start_measurement_button"
+            style="?android:textAppearanceSmall"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">-->
+            android:layout_height="wrap_content"
+            android:text="@string/action_start_measurement"
+            android:textStyle="bold"
+            android:background="#009a9a"
+            android:textColor="#d9e5f3"
+            android:letterSpacing="0.2" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/stop_measurement_button"
+                style="?android:textAppearanceSmall"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/action_stop_measurement"
+                android:textStyle="bold"
+                android:background="#009a9a"
+                android:textColor="#d9e5f3"
+                android:letterSpacing="0.2"
+                android:layout_marginRight="8dp"
+                android:visibility="gone"/>
+            <Button
+                android:id="@+id/check_measurement_button"
+                style="?android:textAppearanceSmall"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/action_check_measurement"
+                android:textStyle="bold"
+                android:background="#009a9a"
+                android:textColor="#d9e5f3"
+                android:letterSpacing="0.2"
+                android:layout_marginLeft="8dp"
+                android:visibility="gone"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
     <ListView
         android:id="@+id/list_sites"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/hint_choose_site"
-        android:layout_above="@id/start_measurement_button"
+        android:layout_above="@id/layout_icons"
         android:layout_marginBottom="16dp"
         android:layout_marginLeft="24dp"
         android:layout_marginRight="24dp">
     </ListView>
-<!--</RadioGroup>
-</ScrollView>-->
 </RelativeLayout>

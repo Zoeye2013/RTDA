@@ -44,11 +44,20 @@
         <activity
             android:name=".RealtimeChartActivity"
             android:label="@string/title_activity_realtime_chart"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar">
+            <receiver android:name=".RealtimeDataBroadcastReceiver">
+                <intent-filter>
+                    <action android:name="fi.aalto.rtda.RealtimeChartActivity.INTENT_ACTION_DEVICE_NUMBER"/>
+                    <action android:name="fi.aalto.rtda.RealtimeChartActivity.INTENT_ACTION_NEW_RECORD"/>
+                </intent-filter>
+            </receiver>
+        </activity>
 
         <service
-            android:name=".MeasuringIntentService"
-            android:exported="false"></service>
+            android:name=".MeasuringBackgroundService"
+            android:enabled="true"
+            android:exported="true" />
+
     </application>
 
 </manifest>

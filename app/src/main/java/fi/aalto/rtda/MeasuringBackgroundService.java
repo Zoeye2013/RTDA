@@ -1,5 +1,6 @@
 package fi.aalto.rtda;
 
+import android.app.Activity;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -7,11 +8,19 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
+
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+
+import java.util.ArrayList;
 
 public class MeasuringBackgroundService extends Service {
     /** Broadcast receiver listen to Bluetooth discovering results
@@ -23,6 +32,15 @@ public class MeasuringBackgroundService extends Service {
     private MeasuringManageClass measuringManage;
     private BTBroadcastReceiver btReceiver;
     private boolean continueInquiry;
+
+    //For real-time chart
+    private ArrayList<ArrayList<Entry>> listOfEntryList; //list of several entry lists
+    private ArrayList<String> xVals;
+    private int allowDevicesNum;
+    private ArrayList<ILineDataSet> dataSets;
+
+    //Callback for notifying activity data changes
+    Callbacks activityForCallback;
 
     /** This is the object that receives interactions from clients*/
     private IBinder signalVectorServiceBinder;
@@ -47,11 +65,14 @@ public class MeasuringBackgroundService extends Service {
         currUser = intent.getStringExtra(LoginActivity.SHARED_KEY_LOGGED_USER);
         measuringManage = new MeasuringManageClass(appContext,currUser,siteName);
         measuringManage.loadAllowedDevices();
+
+        //For Real-time Chart
+        createEntryListsForAllowedDevices();
         //notify chart activity
-        Intent notifyChartIntent = new Intent();
+        /*Intent notifyChartIntent = new Intent();
         notifyChartIntent.setAction(RealtimeChartActivity.INTENT_ACTION_DEVICE_NUMBER);
         notifyChartIntent.putExtra(RealtimeChartActivity.KEY_DEVICE_NUMBER,measuringManage.getAllowedDevicesNumber());
-        appContext.sendBroadcast(notifyChartIntent);
+        appContext.sendBroadcast(notifyChartIntent);*/
 
         btReceiver = new BTBroadcastReceiver();
         btAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -79,6 +100,30 @@ public class MeasuringBackgroundService extends Service {
 
     public MeasuringManageClass getMeasuringManager(){
         return measuringManage;
+    }
+
+    //Create Entry lists for each allowed device
+    public void createEntryListsForAllowedDevices(){
+        listOfEntryList = new ArrayList<ArrayList<Entry>>();
+        xVals = new ArrayList<String>();
+        dataSets = new ArrayList<ILineDataSet>();
+        allowDevicesNum = measuringManage.getAllowedDevicesNumber();
+        for(int i = 0; i < allowDevicesNum; i++){
+            ArrayList<Entry> newEntryList = new ArrayList<Entry>();
+            listOfEntryList.add(newEntryList);
+
+            String lineName = "Device " + (i+1);
+            LineDataSet dataSet = new LineDataSet(listOfEntryList.get(i),lineName);
+
+            /* Give datasets different color */
+            String colorName = "color"+(i+1);
+            int color = getResources().obtainTypedArray(R.array.chartcolors).getColor(i,0);
+            //int test = R.color.color1;
+            dataSet.setColor(color);
+            dataSet.setCircleColor(color);
+            //dataSet.setAxisDependency(YAxis.AxisDependency.LEFT);
+            dataSets.add(dataSet);
+        }
     }
 
     /** Inner class Broadcast receiver listen to Bluetooth discovering results */
@@ -113,7 +158,33 @@ public class MeasuringBackgroundService extends Service {
     public void recordData(){
         tempItem.getSystemCurrentTime();
         measuringManage.addSignalVectorRecord(tempItem);
+
+        //Create Real-time Chart Entry
+        xVals.add(tempItem.getTimeString());
+        int xPosition = xVals.size()-1;
+        ArrayList<Short> signalVectors = tempItem.getSignalVectors();
+        for(int i = 0; i < signalVectors.size(); i++){
+            Entry temp = new Entry(signalVectors.get(i), xPosition);
+            ArrayList<Entry> entryList = listOfEntryList.get(i);
+            entryList.add(temp);
+
+            //Add data sets
+            /*String lineName = "Device " + (i+1);
+            LineDataSet dataSet = new LineDataSet(entryList,lineName);
+            dataSet.setAxisDependency(YAxis.AxisDependency.LEFT);
+            dataSets.add(dataSet);*/
+        }
+        activityForCallback.notifyDataChange();
     }
+
+    //For Real time Chart activity to attrieve
+    public ArrayList<String> getXValues(){
+        return xVals;
+    }
+    public ArrayList<ILineDataSet> getDataSets(){
+        return dataSets;
+    }
+
 
     public boolean checkWifi()
     {
@@ -143,5 +214,15 @@ public class MeasuringBackgroundService extends Service {
         MeasuringBackgroundService getService() {
             return MeasuringBackgroundService.this;
         }
+    }
+
+    //Here Activity register to the service as Callbacks client
+    public void registerClient(Activity activity){
+        activityForCallback = (Callbacks)activity;
+    }
+
+    //Callback for notifying activity data changes
+    public interface Callbacks{
+        public void notifyDataChange();
     }
 }

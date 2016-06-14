@@ -26,6 +26,8 @@
 
     <!-- Strings related to tutorial pages -->
     <string name="tutorial_title">Real time service process modeling </string>
+    <string name="tutorial_content">Real time indoor activity data acquisition</string>
+    <string name="tutorial_sub_content">with Bluetooth indoor positioning technology</string>
     <string name="action_start_training">Training</string>
     <string name="action_stop_training">Stop Training</string>
     <string name="action_start_measurement">Start measurement</string>

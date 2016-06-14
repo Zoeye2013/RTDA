@@ -14,13 +14,31 @@ import android.net.NetworkInfo;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkError;
+import com.android.volley.NoConnectionError;
+import com.android.volley.ParseError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.ServerError;
+import com.android.volley.TimeoutError;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MeasuringBackgroundService extends Service {
     /** Broadcast receiver listen to Bluetooth discovering results
@@ -38,6 +56,7 @@ public class MeasuringBackgroundService extends Service {
     private ArrayList<String> xVals;
     private int allowDevicesNum;
     private ArrayList<ILineDataSet> dataSets;
+    private static final int maxEntriedNum = 30;
 
     //Callback for notifying activity data changes
     Callbacks activityForCallback;
@@ -47,6 +66,13 @@ public class MeasuringBackgroundService extends Service {
 
     //Temp SignalVectorRecord
     private MeasuringManageClass.SignalVectorRecordItem tempItem;
+    private Timer dataTransferTimer;
+    public static final String SAVE_RECORDS_URL = "http://rtda.atwebpages.com/saverecords.php";
+    private static final String RESPONSE_SAVE_SUCCESSFUL = "Tried save";
+    //Keys for transfering data to server
+    public static final String KEY_USERNAME = "username";
+    public static final String KEY_SITENAME = "sitename";
+    public static final String KEY_RECORDS = "records";
 
     public MeasuringBackgroundService() {
     }
@@ -54,12 +80,15 @@ public class MeasuringBackgroundService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.i("RTDA","Service created");
         signalVectorServiceBinder = new SignalVectorLocalBinder();
+        dataTransferTimer = new Timer();
 
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.i("RTDA","Service strated");
         appContext = getApplicationContext();
         siteName = intent.getStringExtra(MeasuringActivity.KEY_SITENAME);
         currUser = intent.getStringExtra(LoginActivity.SHARED_KEY_LOGGED_USER);
@@ -84,6 +113,14 @@ public class MeasuringBackgroundService extends Service {
         continueInquiry = true;
         tempItem = measuringManage.newTempSignalVectorRecord();
         btAdapter.startDiscovery();
+        //Set timer to send data to server periodically
+        dataTransferTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                Log.i("RTDA Save", "run timer task");
+                synchDataToServer();   //Your code here
+            }
+        }, 0, 1*60*1000);//5 Minutes
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -95,6 +132,11 @@ public class MeasuringBackgroundService extends Service {
     @Override
     public void onDestroy() {
         unregisterReceiver(btReceiver);
+        if(dataTransferTimer != null) {
+            dataTransferTimer.cancel();
+            dataTransferTimer = null;
+        }
+        Log.i("RTDA","Service destroyed");
         super.onDestroy();
     }
 
@@ -156,25 +198,106 @@ public class MeasuringBackgroundService extends Service {
     }
 
     public void recordData(){
+        Log.i("RTDA","Service found new record");
         tempItem.getSystemCurrentTime();
         measuringManage.addSignalVectorRecord(tempItem);
 
         //Create Real-time Chart Entry
+
+        int xPosition = xVals.size();
+
         xVals.add(tempItem.getTimeString());
-        int xPosition = xVals.size()-1;
         ArrayList<Short> signalVectors = tempItem.getSignalVectors();
         for(int i = 0; i < signalVectors.size(); i++){
             Entry temp = new Entry(signalVectors.get(i), xPosition);
             ArrayList<Entry> entryList = listOfEntryList.get(i);
             entryList.add(temp);
-
-            //Add data sets
-            /*String lineName = "Device " + (i+1);
-            LineDataSet dataSet = new LineDataSet(entryList,lineName);
-            dataSet.setAxisDependency(YAxis.AxisDependency.LEFT);
-            dataSets.add(dataSet);*/
         }
+
+        //Remove oldest
+        if(xPosition >= maxEntriedNum){
+            xVals.remove(0);
+            for(int i = 0; i < listOfEntryList.size(); i++){
+                listOfEntryList.get(i).remove(0);
+                for (Entry entry : listOfEntryList.get(i)) {
+                    entry.setXIndex(entry.getXIndex() - 1);
+                }
+            }
+        }
+
         activityForCallback.notifyDataChange();
+    }
+
+    public void synchDataToServer(){
+        final ArrayList<MeasuringManageClass.SignalVectorRecordItem> tempRecords = measuringManage.getCopySignalVectorRecord();
+        //Sending allowed devices list to Server
+        ConnectivityManager connectManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo wifiInfo = connectManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        if(wifiInfo.isConnected() && tempRecords.size() > 0){
+            Log.i("RTDA Save", "Start transfer");
+            String tempString = "";
+            for (MeasuringManageClass.SignalVectorRecordItem s: tempRecords){
+                tempString += s.getTimeMilli() + ";";
+                for(Short v: s.getSignalVectors()){
+                    tempString += v + ",";
+                }
+                tempString += "!";
+            }
+            final String recordsString = tempString;
+            Log.i("RTDA Save", tempString);
+            StringRequest stringRequest = new StringRequest(Request.Method.POST,SAVE_RECORDS_URL,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            //showProgress(false);
+                            Toast.makeText(appContext, response, Toast.LENGTH_LONG).show();
+                            Log.i("RTDA save",response);
+                            if(response.trim().contains(RESPONSE_SAVE_SUCCESSFUL)){
+                                int recordsNum = tempRecords.size();
+                                measuringManage.deleteSavedRecords(recordsNum);
+                                Log.i("RTDA Save", "transfer finished");
+                                Log.i("RTDA SAVE","Send " + recordsNum + "," + response);
+                            }
+                        }
+                    }, new Response.ErrorListener(){
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.i("RTDA Save", "transfer finished, but error");
+                    //showProgress(false);
+                    if (error != null) {
+                        Log.e("Volley", "Error. HTTP Status Code:"+error.toString());
+                    }
+
+                    if (error instanceof TimeoutError) {
+                        Toast.makeText(appContext, "Timeout, please retry.", Toast.LENGTH_LONG).show();
+                    }else if(error instanceof NoConnectionError){
+                        Log.e("Volley", "NoConnectionError");
+                    } else if (error instanceof AuthFailureError) {
+                        Log.e("Volley", "AuthFailureError");
+                    } else if (error instanceof ServerError) {
+                        Log.e("Volley", "ServerError");
+                    } else if (error instanceof NetworkError) {
+                        Log.e("Volley", "NetworkError");
+                    } else if (error instanceof ParseError) {
+                        Log.e("Volley", "ParseError");
+                    }
+                    //Toast.makeText(appContext,error.toString(),Toast.LENGTH_LONG).show();
+                    //showProgress(false);
+                }
+            }){
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    Map<String,String> params = new HashMap<String, String>();
+                    params.put(KEY_USERNAME,currUser);
+                    params.put(KEY_SITENAME,siteName);
+                    params.put(KEY_RECORDS,recordsString);
+                    return params;
+                }
+            };
+
+            RequestQueue requestQueue = Volley.newRequestQueue(appContext);
+            requestQueue.add(stringRequest);
+        }
     }
 
     //For Real time Chart activity to attrieve

@@ -22,6 +22,7 @@ import android.os.Build.VERSION;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -112,6 +113,9 @@ public class LoginActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         sharedPref = appContext.getSharedPreferences(SHAREDPREFERENCES,Context.MODE_PRIVATE);
         editor = sharedPref.edit();
+
+        ///Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        //setSupportActionBar(toolbar);
 
         createAppHomeFolder();
 

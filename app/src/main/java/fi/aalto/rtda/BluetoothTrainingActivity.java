@@ -3,12 +3,9 @@ package fi.aalto.rtda;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -20,15 +17,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.GestureDetector;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -44,13 +35,10 @@ import com.android.volley.Response;
 import com.android.volley.ServerError;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -67,7 +55,7 @@ public class BluetoothTrainingActivity extends AppCompatActivity implements View
 
     private ListView listView;
     private EditText siteNameView;
-    private BluetoothHandleClass bluetoothManage;
+    private BluetoothTrainingManageClass bluetoothManage;
     private Context appContext;
     private ProgressBar progressView;
     private Button stopTrainingButton;
@@ -109,7 +97,7 @@ public class BluetoothTrainingActivity extends AppCompatActivity implements View
         });
         devicesNumView = (TextView) findViewById(R.id.allowed_devices_num);
 
-        bluetoothManage = new BluetoothHandleClass(appContext,devicesNumView);
+        bluetoothManage = new BluetoothTrainingManageClass(appContext,devicesNumView);
         listView = (ListView) findViewById(R.id.list_bluetooth_device);
         listView.setAdapter(bluetoothManage.getAllowedDevicesAdapter());
 
@@ -181,7 +169,7 @@ public class BluetoothTrainingActivity extends AppCompatActivity implements View
             focusView.requestFocus();
             cancel = true;
         }else if(siteName.length() <= 4){
-            siteNameView.setError(getString(R.string.error_invalid_password));
+            siteNameView.setError(getString(R.string.error_invalid_sitename));
             focusView = siteNameView;
             focusView.requestFocus();
             cancel = true;

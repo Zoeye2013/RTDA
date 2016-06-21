@@ -23,7 +23,7 @@ import java.util.ArrayList;
 /**
  * Created by zhangy17 on 02/06/16.
  */
-public class BluetoothHandleClass {
+public class BluetoothTrainingManageClass {
     private Context appContext;
     private static BluetoothAdapter bluetoothAdapter;
 
@@ -40,7 +40,7 @@ public class BluetoothHandleClass {
     private TextView textView;
 
 
-    public BluetoothHandleClass(Context context){
+    public BluetoothTrainingManageClass(Context context){
         appContext = context;
         bluetoothDetectState = BLUETOOTH_STATE_IDLE;
         continueInquiry = true;
@@ -50,7 +50,7 @@ public class BluetoothHandleClass {
         isTrainingStopped = false;
     }
 
-    public BluetoothHandleClass(Context context, TextView view){
+    public BluetoothTrainingManageClass(Context context, TextView view){
         appContext = context;
         textView = view;
         bluetoothDetectState = BLUETOOTH_STATE_IDLE;
@@ -83,12 +83,12 @@ public class BluetoothHandleClass {
     }
 
     public void enableBTAdapter(){
-        if(!bluetoothAdapter.isEnabled())
+        if(bluetoothAdapter.isEnabled())
         {
-            /** Call enable() to enable Bluetooth without request for user permission
-             *  This requires android.permission.BLUETOOTH_ADMIN Permission */
+            continueInquiry = true;
+            startDiscovery(BLUETOOTH_STATE_TRAINING);
+        }else{
             bluetoothAdapter.enable();
-            Log.i("New Device: ","enable adapter");
         }
     }
 
@@ -241,16 +241,16 @@ public class BluetoothHandleClass {
             switch(deviceClass)
             {
                 case BluetoothClass.Device.Major.COMPUTER:
-                    deviceIcon.setImageResource(R.drawable.ic_menu_share);
+                    deviceIcon.setImageResource(R.drawable.ic_computer);
                     break;
                 case BluetoothClass.Device.Major.PHONE:
-                    deviceIcon.setImageResource(R.drawable.ic_menu_share);
+                    deviceIcon.setImageResource(R.drawable.ic_phone);
                     break;
                 case BluetoothClass.Device.Major.PERIPHERAL:
-                    deviceIcon.setImageResource(R.drawable.ic_menu_share);
+                    deviceIcon.setImageResource(R.drawable.ic_peripheral);
                     break;
                 default:
-                    deviceIcon.setImageResource(R.drawable.ic_menu_share);
+                    deviceIcon.setImageResource(R.drawable.ic_bluetooth_others);
                     break;
             }
             String name = allowedDevice.getName();

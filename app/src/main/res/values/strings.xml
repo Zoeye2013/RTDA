@@ -35,6 +35,7 @@
 
     <!-- Strings related to Bluetooth manage class -->
     <string name="error_no_bluetooth">Sorry, this device has no Bluetooth.</string>
+    <string name="error_invalid_sitename">Site name is too short</string>
     <string name="title_activity_bluetooth_training">Training devices</string>
     <string name="hint_enter_site_name">Enter site name to save </string>
     <string name="hint_allowed_devices"> allowed devices:</string>

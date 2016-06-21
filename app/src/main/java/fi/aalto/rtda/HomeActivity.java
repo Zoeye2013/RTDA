@@ -1,14 +1,9 @@
 package fi.aalto.rtda;
 
-import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -16,10 +11,8 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class HomeActivity extends AppCompatActivity
@@ -66,6 +59,13 @@ public class HomeActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
     }
 
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -105,14 +105,14 @@ public class HomeActivity extends AppCompatActivity
         int id = v.getId();
         switch (id){
             case R.id.start_training_button:
-                if(BluetoothHandleClass.openBTAdapter(appContext)){
+                if(BluetoothTrainingManageClass.openBTAdapter(appContext)){
                     Intent intent = new Intent(appContext,BluetoothTrainingActivity.class);
                     intent.putExtra(LoginActivity.SHARED_KEY_LOGGED_USER,currUser);
                     startActivity(intent);
                 }
                 break;
             case R.id.start_measurement_button:
-                Intent intent = new Intent(appContext, MeasureSiteSelectActivity.class);
+                Intent intent = new Intent(appContext, MeasuringActivity.class);
                 intent.putExtra(LoginActivity.SHARED_KEY_LOGGED_USER,currUser);
                 startActivity(intent);
                 break;

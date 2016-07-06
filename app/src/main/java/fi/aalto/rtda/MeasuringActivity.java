@@ -1,25 +1,22 @@
 package fi.aalto.rtda;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
 import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothClass;
-import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
+import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -27,63 +24,76 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.RadioGroup.LayoutParams;
 import android.widget.Toast;
 
-import java.io.File;
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkError;
+import com.android.volley.NoConnectionError;
+import com.android.volley.ParseError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.ServerError;
+import com.android.volley.TimeoutError;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class MeasuringActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, View.OnClickListener {
 
     private Context appContext;
-    private String currUser;
-    private File userDir;
 
-    //private ViewGroup sitesGroupView;
-    private ArrayList<String> siteList;
+    private int measurementStatus;
+
+    /** For Site Selecting **/
+    private ArrayList<String> sitesList;
     private ListView sitesListView;
     private SiteArrayAdapter sitesArrayAdapter;
     private int selectIndex = -1;
     private String siteName;
-    public static final String KEY_SITENAME = "sitename";
 
+    /** For Measuring **/
+    private ListView devicesListView;
+
+    /** UI Elements **/
     private Button startButton;
-    private Button checkMasurementButton;
     private Button stopMeasurementButton;
+    private Button toBackgroundButton;
     private TextView selectSiteHintView;
     private TextView measuringHintView;
+    private ProgressBar progressView;
 
     /* SharedPreferences to save user info and server time */
     private SharedPreferences sharedPref;
     private SharedPreferences.Editor editor;
-    public static final String SHARED_KEY_MEASUREMENT_STATUS = "status";
-    public static final int SHARED_MEASUREMENT_STATUS_ONGOING = 2;
 
-    //Enable bluetooth adapater
-    private static BluetoothAdapter bluetoothAdapter;
-    private BroadcastReceiver btReceiver;
+    private long timeDifference;
 
-    //Stop measurement
-    public static boolean isMeasurementStopped;
-    //Interaction with background service
-    private MeasuringBackgroundService signalVectorService;
+    /** Interacting with background service **/
+    private BluetoothBackgroundService btService;
     private ServiceConnection serviceConnection;
+    private boolean isBind;
+    private MeasuringManageClass measureManage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_measure_site_select);
+        setContentView(R.layout.activity_measurement);
 
         appContext = this;
-        currUser = getIntent().getStringExtra(LoginActivity.SHARED_KEY_LOGGED_USER);
-        sharedPref = appContext.getSharedPreferences(LoginActivity.SHAREDPREFERENCES,Context.MODE_PRIVATE);
+        timeDifference = getIntent().getLongExtra(HomeActivity.KEY_SERVER_TIME_DIFF,0);
+
+        sharedPref = appContext.getSharedPreferences(HomeActivity.SHARED_PREFERENCES,Context.MODE_PRIVATE);
         editor = sharedPref.edit();
-        //editor.remove(SHARED_KEY_MEASUREMENT_STATUS); //test
-        //editor.commit(); //test
+        measurementStatus = sharedPref.getInt(HomeActivity.SHARE_KEY_MEASUREMENT_STATUS,HomeActivity.STATUS_MEASUREMENT_IDLE);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -95,124 +105,140 @@ public class MeasuringActivity extends AppCompatActivity implements AdapterView.
                 finish();
             }
         });
-        isMeasurementStopped = false;
 
-        //sitesGroupView = (ViewGroup) findViewById(R.id.radio_group_sites);
-        sitesListView = (ListView) findViewById(R.id.list_sites); //Testing
-        userDir  = appContext.getDir(currUser, Context.MODE_PRIVATE);
+        /** UI elements **/
+        sitesListView = (ListView) findViewById(R.id.list_sites);
+        devicesListView = (ListView) findViewById(R.id.list_bluetooth_device);
 
-        startButton = (Button) findViewById(R.id.start_measurement_button);
-        checkMasurementButton = (Button) findViewById(R.id.check_measurement_button);
-        stopMeasurementButton = (Button) findViewById(R.id.stop_measurement_button);
+        progressView = (ProgressBar) findViewById(R.id.progress_measurement);
+
+        startButton = (Button) findViewById(R.id.button_measurement);
+        stopMeasurementButton = (Button) findViewById(R.id.button_end_measurement);
+        toBackgroundButton = (Button) findViewById(R.id.button_to_background);
 
         selectSiteHintView = (TextView) findViewById(R.id.hint_choose_site);
         measuringHintView = (TextView) findViewById(R.id.hint_measurement_ongoing);
         startButton.setOnClickListener(this);
-        checkMasurementButton.setOnClickListener(this);
         stopMeasurementButton.setOnClickListener(this);
+        toBackgroundButton.setOnClickListener(this);
 
-        //Enable bluetooth adapter
-        btReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                String action = intent.getAction();
-                if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
-                    int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
-                    switch (state) {
-                        case BluetoothAdapter.STATE_ON: //Start measuring chart and service
-                            unregisterReceiver(btReceiver);
-                            Intent measuringServiceIntent = new Intent(appContext,MeasuringBackgroundService.class);
-                            measuringServiceIntent.putExtra(KEY_SITENAME,siteName);
-                            measuringServiceIntent.putExtra(LoginActivity.SHARED_KEY_LOGGED_USER,currUser);
-                            startService(measuringServiceIntent);
-                            Intent realTimeChartIntent = new Intent(appContext,RealtimeChartActivity.class);
-                            startActivity(realTimeChartIntent);
-                            break;
-                    }
-                }
-            }
-        };
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if(!isMeasurementStopped)
-            checkElements();
-        else
-            finish();
+        uiOnMeasurementStatus();
     }
 
     @Override
     protected void onDestroy() {
-        try{
-            unregisterReceiver(btReceiver);
-        }catch (IllegalArgumentException e){
-
-        }
+        /** Unbind background service **/
+        if(isBind)
+            unbindService(serviceConnection);
         super.onDestroy();
     }
 
-    //Update elements according to measurement status
-    public void checkElements(){
-        //Get measurement status
-        int measurementStatus = sharedPref.getInt(SHARED_KEY_MEASUREMENT_STATUS,0);
-        if(measurementStatus == SHARED_MEASUREMENT_STATUS_ONGOING) {
-            //Hide elements when measurement on going
-            startButton.setVisibility(View.GONE);
-            selectSiteHintView.setVisibility(View.GONE);
-            sitesListView.setVisibility(View.GONE);
+    /** Load UI depends on Measurement Status **/
+    public void uiOnMeasurementStatus(){
+        switch (measurementStatus){
+            /** When no measurement ongoing **/
+            case HomeActivity.STATUS_MEASUREMENT_IDLE:
+                devicesListView.setVisibility(View.GONE);
+                stopMeasurementButton.setVisibility(View.GONE);
+                toBackgroundButton.setVisibility(View.GONE);
+                measuringHintView.setVisibility(View.GONE);
 
-            //Show elements when measurement on going
-            checkMasurementButton.setVisibility(View.VISIBLE);
-            stopMeasurementButton.setVisibility(View.VISIBLE);
-            measuringHintView.setVisibility(View.VISIBLE);
-        }else {
-            //If measurement isn't ongoing, register broadcast to receive Bluetooth adapter enabled actions
-            IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-            registerReceiver(btReceiver, filter);
+                /** Show list of sites for user to choose the measurement site **/
+                sitesListView.setVisibility(View.VISIBLE);
+                startButton.setVisibility(View.VISIBLE);
+                selectSiteHintView.setVisibility(View.VISIBLE);
+                enableStartButton();
 
-            //Hide elements when measurement on going
-            startButton.setVisibility(View.VISIBLE);
-            selectSiteHintView.setVisibility(View.VISIBLE);
-            sitesListView.setVisibility(View.VISIBLE);
-            enableStartButton();
+                /** Init UI **/
+                sitesList = new ArrayList<String>();
+                sitesArrayAdapter = new SiteArrayAdapter(appContext,sitesList);
+                sitesListView.setAdapter(sitesArrayAdapter);
+                sitesListView.setOnItemClickListener(this);
 
-            //Show elements when measurement on going
-            checkMasurementButton.setVisibility(View.GONE);
-            stopMeasurementButton.setVisibility(View.GONE);
-            measuringHintView.setVisibility(View.GONE);
+                /** Fetch list of sites from server **/
+                fetchSitesList();
+                break;
+            /** When there is measurement ongoing **/
+            case HomeActivity.STATUS_MEASUREMENT_ONGING:
+                sitesListView.setVisibility(View.GONE);
+                startButton.setVisibility(View.GONE);
+                selectSiteHintView.setVisibility(View.GONE);
 
-            loadSitesList();
+                /** Show devices list of the selected measurement site **/
+                devicesListView.setVisibility(View.VISIBLE);
+                stopMeasurementButton.setVisibility(View.VISIBLE);
+                measuringHintView.setVisibility(View.VISIBLE);
+                toBackgroundButton.setVisibility(View.VISIBLE);
+                bindBackgroundService();
+                showProgress(true);
+                break;
         }
     }
 
-    public void loadSitesList() {
-        File lister = userDir.getAbsoluteFile();
-        String[] list = lister.list();
-        siteList = new ArrayList<String>(Arrays.asList(list));
-        sitesArrayAdapter = new SiteArrayAdapter(appContext,siteList);
-        sitesListView.setAdapter(sitesArrayAdapter);
-        sitesListView.setOnItemClickListener(this);
+    /** Fetch List of sites from server, user can choose which is measurement site for this time **/
+    public void fetchSitesList(){
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, HomeActivity.URL_FETCH_SITE_LIST, new Response.Listener<String>(){
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    JSONArray jsonArray = jsonObject.getJSONArray(HomeActivity.KEY_JSONARRAY_LIST);
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        sitesList.add(jsonArray.getString(i));
+                    }
+                    sitesArrayAdapter.notifyDataSetChanged();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener(){
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                if (error != null) {
+                    Log.e("Volley", "Error. HTTP Status Code:"+error.toString());
+                }
+
+                if (error instanceof TimeoutError) {
+                    Log.e("Volley", "TimeoutError");
+                }else if(error instanceof NoConnectionError){
+                    Log.e("Volley", "NoConnectionError");
+                } else if (error instanceof AuthFailureError) {
+                    Log.e("Volley", "AuthFailureError");
+                } else if (error instanceof ServerError) {
+                    Log.e("Volley", "ServerError");
+                } else if (error instanceof NetworkError) {
+                    Log.e("Volley", "NetworkError");
+                } else if (error instanceof ParseError) {
+                    Log.e("Volley", "ParseError");
+                }
+                Toast.makeText(appContext,error.toString(),Toast.LENGTH_LONG).show();
+            }
+        });
+
+        RequestQueue requestQueue = Volley.newRequestQueue(appContext);
+        requestQueue.add(stringRequest);
     }
 
+
+    /** Mark the site selected by user **/
     public void setSelectIndex(int index){
         selectIndex = index;
     }
 
+    /** List of sites, item clicked listener **/
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         setSelectIndex(position);
-        siteName = siteList.get(position);
+        siteName = sitesList.get(position);
         enableStartButton();
         sitesArrayAdapter.notifyDataSetChanged();
     }
 
+    /** Enable Start measurement button if there is site selected by user **/
     public void enableStartButton(){
-        //Start button is disabled
         if(selectIndex >= 0){
             startButton.setEnabled(true);
-            startButton.setBackgroundColor(getResources().getColor(R.color.colorEnabled));
+            startButton.setBackgroundColor(getResources().getColor(R.color.button_enable));
         }
         else{
             startButton.setEnabled(false);
@@ -220,87 +246,78 @@ public class MeasuringActivity extends AppCompatActivity implements AdapterView.
         }
     }
 
-    /**Get local BT adapter and enable Bluetooth*/
-    public boolean openBTAdapter(){
-        boolean btSuccessful = true;
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (bluetoothAdapter == null){
-            /** If the device doesn't support Bluetooth, the end this module */
-            Toast toast = Toast.makeText(appContext, R.string.error_no_bluetooth, Toast.LENGTH_LONG);
-            btSuccessful = false;
-        }
-        return btSuccessful;
-    }
 
-    public void disableBTAdapter(){
-        if(bluetoothAdapter.isEnabled())
-            bluetoothAdapter.disable();
-    }
-
-    public void loadAllowedDevices(){
-
-    }
-
+    /** Handle buttons (Start measurement, end measurement & put to background) clicked actions **/
     @Override
     public void onClick(View v) {
         switch (v.getId()){
-            case R.id.start_measurement_button:
-                editor.putInt(SHARED_KEY_MEASUREMENT_STATUS,SHARED_MEASUREMENT_STATUS_ONGOING);
+            case R.id.button_measurement:
+                /** Start measurement **/
+                measurementStatus = HomeActivity.STATUS_MEASUREMENT_ONGING;
+                editor.putInt(HomeActivity.SHARE_KEY_MEASUREMENT_STATUS,measurementStatus);
                 editor.commit();
-                if(openBTAdapter()){
-                    if(bluetoothAdapter.isEnabled()){
-                        unregisterReceiver(btReceiver);
-                        Intent measuringServiceIntent = new Intent(appContext,MeasuringBackgroundService.class);
-                        measuringServiceIntent.putExtra(KEY_SITENAME,siteName);
-                        measuringServiceIntent.putExtra(LoginActivity.SHARED_KEY_LOGGED_USER,currUser);
-                        startService(measuringServiceIntent);
-                        Intent realTimeChartIntent = new Intent(appContext,RealtimeChartActivity.class);
-                        startActivity(realTimeChartIntent);
-                        // Bind background service
-                        //bindBackgroundService();
-                    }else{
-                        bluetoothAdapter.enable();
-                    }
-                }
-                isMeasurementStopped = false; //Measurement isn't stopped
+
+                /** Start Background Service for Bluetooth Detecting **/
+                Intent btServiceIntent = new Intent(appContext,BluetoothBackgroundService.class);
+                btServiceIntent.putExtra(HomeActivity.KEY_SERVER_TIME_DIFF,timeDifference);
+                btServiceIntent.putExtra(HomeActivity.KEY_SERVICE_ACTION,HomeActivity.ACTION_MEASUREMENT);
+                btServiceIntent.putExtra(HomeActivity.KEY_SITE_NAME,siteName);
+                startService(btServiceIntent);
+
+                /** Load UI depends on Measurement Status **/
+                uiOnMeasurementStatus();
                 break;
-            case R.id.stop_measurement_button:
-                editor.remove(SHARED_KEY_MEASUREMENT_STATUS);
+            case R.id.button_end_measurement:
+                /** End measurement **/
+                measurementStatus = HomeActivity.STATUS_MEASUREMENT_IDLE;
+                editor.putInt(HomeActivity.SHARE_KEY_MEASUREMENT_STATUS,measurementStatus);
                 editor.commit();
-                isMeasurementStopped = true;
-                /*if(signalVectorService.getMeasuringManager().getRecordsNum() >0){
-                    signalVectorService.synchDataToServer();
-                }*/
-                stopService(new Intent(appContext, MeasuringBackgroundService.class));
+                btService.endCalibrationOrMeasurement();
+                showProgress(false);
+                if(isServiceRunning(BluetoothBackgroundService.class))
+                    stopService(new Intent(this, BluetoothBackgroundService.class));
                 finish();
                 break;
-            case R.id.check_measurement_button:
-                Intent realTimeChartIntent = new Intent(appContext,RealtimeChartActivity.class);
-                startActivity(realTimeChartIntent);
+            case R.id.button_to_background:
+                /** Close Activity and the background service keep running **/
+                showProgress(false);
+                finish();
                 break;
         }
     }
 
+    /** Bind Background Bluetooth Detecting Service **/
     public void bindBackgroundService(){
         serviceConnection = new ServiceConnection() {
 
             /** When the connection with the service has been established */
             public void onServiceConnected(ComponentName className, IBinder service) {
-
                 /** Get the service object we can use to interact with the service */
-                signalVectorService = ((MeasuringBackgroundService.SignalVectorLocalBinder) service).getService();
-                signalVectorService.registerClient(MeasuringActivity.this);
+                btService = ((BluetoothBackgroundService.BTServiceLocalBinder) service).getService();
+                measureManage = btService.getMeasureManage();
+                //uiOnMeasurementStatus();
+                devicesListView.setAdapter(measureManage.getSiteDevicesAdapter());
+                isBind = true;
             }
 
             public void onServiceDisconnected(ComponentName arg0) { }
         };
-
-        /** Bind service that responsible for recording Bluetooth RSSI value on RUN_STATE */
-        Intent signalVectorServiceIntent = new Intent(this, MeasuringBackgroundService.class);
-        bindService(signalVectorServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+        Intent btServiceIntent = new Intent(this, BluetoothBackgroundService.class);
+        bindService(btServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
-    //ArrayAdpater for render Bluetooth devices list
+    /** Check if Background Service is running **/
+    private boolean isServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** ArrayAdpater for render site devices list **/
     public class SiteArrayAdapter extends ArrayAdapter<String> {
 
         public SiteArrayAdapter(Context context,ArrayList<String> siteNames){
@@ -311,20 +328,39 @@ public class MeasuringActivity extends AppCompatActivity implements AdapterView.
         public View getView(final int position, View convertView, ViewGroup parent) {
             String name = getItem(position);
             if(convertView == null){
-                convertView = ((Activity)appContext).getLayoutInflater().inflate(R.layout.site_item,parent,false);
+                convertView = ((Activity)appContext).getLayoutInflater().inflate(R.layout.item_site,parent,false);
             }
-            ImageView checkboxIcon = (ImageView) convertView.findViewById(R.id.checkbox_icon);
-            TextView siteNameView = (TextView) convertView.findViewById(R.id.site_name);
+            ImageView checkboxIcon = (ImageView) convertView.findViewById(R.id.image_checkbox);
+            TextView siteNameView = (TextView) convertView.findViewById(R.id.text_site_name);
             siteNameView.setText(name);
             if(position == selectIndex) {
                 checkboxIcon.setImageResource(R.drawable.ic_checkbox_checked);
-                convertView.setBackgroundColor(getResources().getColor(R.color.colorSelected));
+                convertView.setBackgroundColor(getResources().getColor(R.color.checkbox_selected));
             }
             else {
                 checkboxIcon.setImageResource(R.drawable.ic_checkbox_uncheck);
                 convertView.setBackgroundColor(Color.TRANSPARENT);
             }
             return convertView;
+        }
+    }
+
+    /** Shows the progress bar  **/
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+    private void showProgress(final boolean show) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+            progressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            progressView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    progressView.setVisibility(show ? View.VISIBLE : View.GONE);
+                }
+            });
+        } else {
+            progressView.setVisibility(show ? View.VISIBLE : View.GONE);
         }
     }
 }

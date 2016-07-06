@@ -26,52 +26,62 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-/** Jave Class for keeping data before persistent data to Server's database **/
-public class MeasuringManageClass {
+/** Jave Class for keeping data before persistent data to Server's database**/
+public class CalibrationManageClass {
+
     private Context appContext;
 
     /** Lists **/
-    private ArrayList<BluetoothDevice> siteDevicesList; //Devices list of user selected measurement site
+    private ArrayList<BluetoothDevice> allowedDevicesList; //Full list of all allowed devices
+    private ArrayList<BluetoothDevice> siteDevicesList;    //Subset of allowed devices, for specific measurement site
+    private ArrayList<BluetoothDevice> irrelevantList;     //In range irrelevant devices that are not allowed devices
     private ArrayList<Short> rssiList; //For present Listview rssi field
-
     private SiteDevicesAdapter siteDevicesAdapter;
 
-    /** For recording measurement record **/
+    /** For recording calibration record **/
     private RecordItemClass tempRecordItem;
-    private ArrayList<Short> signalsList;    //Temporarily record one calibration record's RSSIs of all allowed devices.
-    private ArrayList<RecordItemClass> recordList;   //List of calibration records
+    private ArrayList<Short> signalsList;       //Temporarily record one calibration record's RSSIs of all allowed devices.
+    private ArrayList<RecordItemClass> recordList;  //List of calibration records
 
     /** Class Constructor, initiation works  **/
-    public MeasuringManageClass(Context context){
+    public CalibrationManageClass(Context context){
         appContext = context;
-
         siteDevicesList = new ArrayList<BluetoothDevice>();
         rssiList = new ArrayList<Short>();
-        signalsList = new ArrayList<Short>();
-
+        irrelevantList = new ArrayList<BluetoothDevice>();
+        allowedDevicesList = new ArrayList<BluetoothDevice>();
         recordList = new ArrayList<RecordItemClass>();
+        signalsList = new ArrayList<Short>();
         siteDevicesAdapter = new SiteDevicesAdapter(appContext,siteDevicesList);
     }
 
-    /** Fetch devices list of user selected measurement site from Server **/
-    public void fetchSiteDevicesList(final String siteName){
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, HomeActivity.URL_FETCH_SITE_DEVICES_LIST, new Response.Listener<String>(){
+    /** Fetch full list of allowed devices from Server **/
+    public void fetchAllowedList(){
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, HomeActivity.URL_FETCH_ALLOWED_LIST, new Response.Listener<String>(){
             @Override
             public void onResponse(String response) {
-                ArrayList<String>tempList = new ArrayList<String>(Arrays.asList(response.split(",")));
-                for(int i = 0; i < tempList.size(); i++){
-                    BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(tempList.get(i));
-                    siteDevicesList.add(device);
-                    rssiList.add((short)0);
-                    signalsList.add((short)0);
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    JSONArray jsonArray = jsonObject.getJSONArray(HomeActivity.KEY_JSONARRAY_LIST);
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject row = jsonArray.getJSONObject(i);
+                        String address = row.getString(HomeActivity.KEY_JSONARRAY_ADDRESS).toUpperCase().replaceAll("(.{2})", "$1"+":").substring(0,17);
+                        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+                        allowedDevicesList.add(device);
+                        signalsList.add((short)0);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-                siteDevicesAdapter.notifyDataSetChanged();
             }
         }, new Response.ErrorListener(){
             @Override
@@ -95,25 +105,36 @@ public class MeasuringManageClass {
                 }
                 Toast.makeText(appContext,error.toString(),Toast.LENGTH_LONG).show();
             }
-        }){
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String,String> params = new HashMap<String, String>();
-                params.put(HomeActivity.KEY_SITE_NAME,siteName);
-                return params;
-            }
-        };
+        });
+
         RequestQueue requestQueue = Volley.newRequestQueue(appContext);
         requestQueue.add(stringRequest);
     }
 
-    /** Update RSSIs for Temporary Record **/
-    public void updateTempRSSI(BluetoothDevice device, short rssi){
-        int index = siteDevicesList.indexOf(device);
-        if(index >= 0){//Is one of site devices
-            rssiList.set(index,rssi);
+    /** Add a found device that is included in allowed devices list,
+     * to form new devices list for a specific measurment site**/
+    public void addSiteDevice(BluetoothDevice device, short rssi){
+        int index = allowedDevicesList.indexOf(device);
+        if(index >= 0){//Is one of allowed devices
+            int i = siteDevicesList.indexOf(device);
+            /** If not exist in site devices list, add it, otherwise update the RSSI **/
+            if(i<0){
+                siteDevicesList.add(0,device);
+                rssiList.add(0,rssi);
+            }else{
+                rssiList.set(i,rssi);
+            }
+            /** Update the RSSI for recording calibration **/
             signalsList.set(index,rssi);
+
+        }else if(!irrelevantList.contains(device)){
+            irrelevantList.add(device);
         }
+    }
+
+    /** Irrelevant devices will be put into a list **/
+    public boolean isIrrelevant(BluetoothDevice device){
+        return irrelevantList.contains(device)? true:false;
     }
 
     /** Get List Adapter for ListView to present data **/
@@ -121,7 +142,23 @@ public class MeasuringManageClass {
         return siteDevicesAdapter;
     }
 
-    /** Record one Measurement record, and add it to measurement records list **/
+    public int getSiteDevicesNumber(){
+        return siteDevicesList.size();
+    }
+
+    /** Delete calibrations records that are successfully synchronized to Server **/
+    public void deleteSavedRecords(int saveRecordsNum){
+        for(int i = 0; i < saveRecordsNum; i++){
+            recordList.remove(0);
+        }
+    }
+
+    /** Get list of devices for a spacific measurement site **/
+    public  ArrayList<BluetoothDevice> getSiteDevicesList(){
+        return  siteDevicesList;
+    }
+
+    /** Record one Calibration record, and add it to calibration records list **/
     public void recordData(){
         tempRecordItem = new RecordItemClass();
         tempRecordItem.setSignalVector(signalsList);
@@ -129,14 +166,8 @@ public class MeasuringManageClass {
         Collections.fill(signalsList,(short)0);
     }
 
-    /** Delete measurement records that are successfully synchronized to Server **/
-    public void deleteSavedRecords(int saveRecordsNum){
-        for(int i = 0; i < saveRecordsNum; i++){
-            recordList.remove(0);
-        }
-    }
-    /** Synchronize Measurement Data to Server **/
-    public void synchMesurementToServer(Long timedifference,String localBTAddress){
+    /** Synchronize Calibration Records to Server **/
+    public void synchCalibrationToServer(Long timedifference,String localBTAddress){
         final int recordsNum = recordList.size();
         final String localBT = localBTAddress;
         if(recordsNum > 0){
@@ -157,7 +188,8 @@ public class MeasuringManageClass {
             final String dateString = date;
             final String recordsString = tempString;
 
-            StringRequest stringRequest = new StringRequest(Request.Method.POST,HomeActivity.URL_SAVE_MEASUREMENT,
+
+            StringRequest stringRequest = new StringRequest(Request.Method.POST,HomeActivity.URL_SAVE_CALIBRATION,
                     new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
@@ -186,8 +218,6 @@ public class MeasuringManageClass {
                     } else if (error instanceof ParseError) {
                         Log.e("Volley", "ParseError");
                     }
-                    //Toast.makeText(appContext,error.toString(),Toast.LENGTH_LONG).show();
-                    //showProgress(false);
                 }
             }){
                 @Override
@@ -199,6 +229,7 @@ public class MeasuringManageClass {
                     return params;
                 }
             };
+
             RequestQueue requestQueue = Volley.newRequestQueue(appContext);
             requestQueue.add(stringRequest);
         }

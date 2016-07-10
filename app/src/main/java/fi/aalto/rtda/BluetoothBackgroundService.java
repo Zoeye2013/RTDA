@@ -73,7 +73,6 @@ public class BluetoothBackgroundService extends Service {
                     Intent activtyIntent = new Intent(appContext,CalibrationActivity.class);
                     activtyIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(activtyIntent);
-
                     break;
                 /** Perform Measurement works **/
                 case HomeActivity.ACTION_MEASUREMENT:
@@ -228,7 +227,7 @@ public class BluetoothBackgroundService extends Service {
                         break;
                     case HomeActivity.ACTION_MEASUREMENT:
                         if(!isMeasurementStopped) {
-                            measureManage.getSiteDevicesAdapter().notifyDataSetChanged();
+                            measureManage.getMeasurementDevicesAdapter().notifyDataSetChanged();
                             measureManage.recordData();
                         }
                         break;

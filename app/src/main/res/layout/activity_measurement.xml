@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Measurement Page UI -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -28,15 +29,27 @@
         android:layout_height="wrap_content"
         android:text="@string/hint_choose_site"
         android:layout_below="@id/layout_toolbar"
-        android:layout_margin="24dp"
-        android:textSize="16dp"/>
+        android:layout_margin="@dimen/margin_wide"
+        android:textSize="@dimen/textsize_normal_plus"/>
     <TextView
         android:id="@+id/hint_measurement_ongoing"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="28dp"
-        android:layout_centerInParent="true"
         android:text="@string/hint_measurement_onging"
+        android:layout_below="@id/layout_toolbar"
+        android:layout_margin="@dimen/margin_wide"
+        android:textSize="@dimen/textsize_normal_plus"
+        android:visibility="gone"/>
+    <ProgressBar
+        android:id="@+id/progress_measurement"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="@dimen/margin_wide"
+        android:layout_marginTop="@dimen/margin_normal"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/layout_toolbar"
+        android:layout_toRightOf="@id/hint_measurement_ongoing"
         android:visibility="gone"/>
 
     <LinearLayout
@@ -44,49 +57,49 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="10dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:layout_marginLeft="@dimen/margin_normal"
+        android:layout_marginRight="@dimen/margin_normal"
         android:orientation="vertical">
         <Button
-            android:id="@+id/start_measurement_button"
+            android:id="@+id/button_measurement"
             style="?android:textAppearanceSmall"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/action_start_measurement"
+            android:text="@string/button_measurement"
             android:textStyle="bold"
-            android:background="#009a9a"
-            android:textColor="#d9e5f3"
+            android:background="@color/button_enable"
+            android:textColor="@color/text_button_enable"
             android:letterSpacing="0.2" />
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
             <Button
-                android:id="@+id/stop_measurement_button"
+                android:id="@+id/button_end_measurement"
                 style="?android:textAppearanceSmall"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/action_stop_measurement"
+                android:text="@string/button_end_measurement"
                 android:textStyle="bold"
-                android:background="#009a9a"
-                android:textColor="#d9e5f3"
+                android:background="@color/button_enable"
+                android:textColor="@color/text_button_enable"
                 android:letterSpacing="0.2"
-                android:layout_marginRight="8dp"
+                android:layout_marginRight="@dimen/margin_xsmall"
                 android:visibility="gone"/>
             <Button
-                android:id="@+id/check_measurement_button"
+                android:id="@+id/button_to_background"
                 style="?android:textAppearanceSmall"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/action_check_measurement"
+                android:text="@string/button_to_background"
                 android:textStyle="bold"
-                android:background="#009a9a"
-                android:textColor="#d9e5f3"
+                android:background="@color/button_enable"
+                android:textColor="@color/text_button_enable"
                 android:letterSpacing="0.2"
-                android:layout_marginLeft="8dp"
+                android:layout_marginRight="@dimen/margin_xsmall"
                 android:visibility="gone"/>
         </LinearLayout>
 
@@ -98,8 +111,16 @@
         android:layout_height="match_parent"
         android:layout_below="@id/hint_choose_site"
         android:layout_above="@id/layout_icons"
-        android:layout_marginBottom="16dp"
-        android:layout_marginLeft="24dp"
-        android:layout_marginRight="24dp">
+        android:layout_marginBottom="@dimen/margin_normal"
+        android:layout_marginLeft="@dimen/margin_wide"
+        android:layout_marginRight="@dimen/margin_wide">
+    </ListView>
+    <ListView
+        android:id="@+id/list_bluetooth_device"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/hint_measurement_ongoing"
+        android:layout_above="@id/layout_icons"
+        android:layout_margin="@dimen/margin_normal">
     </ListView>
 </RelativeLayout>

@@ -1,56 +1,58 @@
 <resources>
-    <string name="app_name">RTDA</string>
+    <!-- Login -->
+    <string name="button_sign_in">Sign in</string>
 
-    <!-- Strings related to login -->
+    <string name="prompt_sign_in">Please sign in as Admin:</string>
     <string name="prompt_username">Username</string>
     <string name="prompt_password">Password</string>
 
-    <string name="action_sign_in">Sign in</string>
-    <string name="action_register">Register</string>
-
-    <string name="error_invalid_username">This username is too short</string>
-    <string name="error_exsit_username">This username is occupied</string>
-    <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_username_or_password">Username or password is incorrect</string>
     <string name="error_field_required">This field is required</string>
-    <string name="error_sd_card_not_available">Phone\'s SDCard not available, data wont\'s be stored locally!</string>
-    completions."
-    <string name="title_activity_register">Welcome</string>
-    <string name="title_activity_home">RTDA</string>
-    <string name="title_header_welcome_logged_in_user">Welcome!</string>
+
+    <!-- Main -->
+    <string name="text_welcome">Welcome!</string>
+    <string name="text_welcome_as_admin">Welcome Admin!</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
-    <string name="action_settings">Settings</string>
+    <string name="button_settings">Settings</string>
 
-    <!-- Strings related to tutorial pages -->
-    <string name="tutorial_title">Real time service process modeling </string>
-    <string name="tutorial_content">Real time indoor activity data acquisition</string>
-    <string name="tutorial_sub_content">with Bluetooth indoor positioning technology</string>
-    <string name="action_start_training">Training</string>
-    <string name="action_stop_training">Stop Training</string>
-    <string name="action_start_measurement">Start measurement</string>
-    <string name="action_stop_measurement">Stop measurement</string>
+    <!-- Home -->
+    <string name="title_activity_home">RTDA</string>
+    <string name="title_tutorial_large">Real time service process modeling </string>
+    <string name="title_tutorial_normal">Real time indoor activity data acquisition</string>
+    <string name="title_tutorial_small">with Bluetooth indoor positioning technology</string>
 
-    <!-- Strings related to Bluetooth manage class -->
-    <string name="error_no_bluetooth">Sorry, this device has no Bluetooth.</string>
-    <string name="error_invalid_sitename">Site name is too short</string>
-    <string name="title_activity_bluetooth_training">Training devices</string>
+    <string name="button_calibration">Calibration</string>
+    <string name="button_measurement">Start measurement</string>
+    <string name="button_measuring">Measuring</string>
+
+    <!-- Calibration -->
+    <string name="title_activity_calibration">Calibration</string>
+
     <string name="hint_enter_site_name">Enter site name to save </string>
     <string name="hint_allowed_devices"> allowed devices:</string>
+
     <string name="prompt_site_name">Site name</string>
-    <string name="action_cancel">Cancel</string>
-    <string name="action_remove">Remove</string>
-    <string name="action_save_allowed_devices">Save allowed devices</string>
 
-    <string name="error_allowed_file_exist">Measurement site name is occupied.</string>
-    <string name="title_activity_measure_site_select">MeasureSiteSelectActivity</string>
+    <string name="button_end_calibration">End calibration</string>
+    <string name="button_save_site_devices">Save devices to site</string>
 
-    <!-- Strings related to Measurement site selecting page -->
+    <!-- Measurement -->
+    <string name="title_activity_measurement">Measurement</string>
+
     <string name="hint_choose_site">Select site to start measurement:</string>
-    <string name="action_check_measurement">Check measurement</string>
     <string name="hint_measurement_onging">Measurement is ongoing...</string>
-    <string name="title_activity_realtime_chart">RealtimeChartActivity</string>
-    <string name="hint_waiting_measurement">Waiting for measurement data...</string>
+
+    <string name="button_end_measurement">Stop measurement</string>
+    <string name="button_to_background">To Background</string>
+
+    <!-- Errors -->
+    <string name="error_invalid_sitename">Site name is too short</string>
+    <string name="error_site_exist">Measurement site name is occupied.</string>
+    <string name="error_sd_card_not_available">Phone\'s SDCard not available, data wont\'s be stored locally!</string>
+    <string name="error_no_bluetooth">Sorry, this device has no Bluetooth.</string>
+
+
 </resources>

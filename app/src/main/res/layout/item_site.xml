@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- List Item UI for Presenting site -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="horizontal">
     <ImageView
-        android:id="@+id/checkbox_icon"
+        android:id="@+id/image_checkbox"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_marginRight="24dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-        android:layout_marginLeft="16dp"
+        android:layout_marginRight="@dimen/margin_wide"
+        android:layout_marginTop="@dimen/margin_normal"
+        android:layout_marginBottom="@dimen/margin_normal"
+        android:layout_marginLeft="@dimen/margin_normal"
         android:src="@drawable/ic_menu_send"/>
     <TextView
-        android:id="@+id/site_name"
+        android:id="@+id/text_site_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-        android:textSize="16dp"
+        android:layout_marginTop="@dimen/margin_normal"
+        android:layout_marginBottom="@dimen/margin_normal"
+        android:textSize="@dimen/textsize_normal_plus"
         android:textStyle="bold"/>
 </LinearLayout>

@@ -40,7 +40,7 @@ public class MeasuringManageClass {
     private ArrayList<BluetoothDevice> siteDevicesList; //Devices list of user selected measurement site
     private ArrayList<Short> rssiList; //For present Listview rssi field
 
-    private SiteDevicesAdapter siteDevicesAdapter;
+    private MeasurementDevicesAdapter siteDevicesAdapter;
 
     /** For recording measurement record **/
     private RecordItemClass tempRecordItem;
@@ -56,7 +56,7 @@ public class MeasuringManageClass {
         signalsList = new ArrayList<Short>();
 
         recordList = new ArrayList<RecordItemClass>();
-        siteDevicesAdapter = new SiteDevicesAdapter(appContext,siteDevicesList);
+        siteDevicesAdapter = new MeasurementDevicesAdapter(appContext,siteDevicesList);
     }
 
     /** Fetch devices list of user selected measurement site from Server **/
@@ -117,7 +117,7 @@ public class MeasuringManageClass {
     }
 
     /** Get List Adapter for ListView to present data **/
-    public  SiteDevicesAdapter getSiteDevicesAdapter(){
+    public  MeasurementDevicesAdapter getMeasurementDevicesAdapter(){
         return siteDevicesAdapter;
     }
 
@@ -205,8 +205,8 @@ public class MeasuringManageClass {
     }
 
     /** ArrayAdpater for render Bluetooth devices list **/
-    public class SiteDevicesAdapter extends ArrayAdapter<BluetoothDevice> {
-        public SiteDevicesAdapter(Context context, ArrayList<BluetoothDevice> allowedDevices){
+    public class MeasurementDevicesAdapter extends ArrayAdapter<BluetoothDevice> {
+        public MeasurementDevicesAdapter(Context context, ArrayList<BluetoothDevice> allowedDevices){
             super(context,0,allowedDevices);
         }
 

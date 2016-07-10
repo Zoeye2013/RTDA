@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Calibration Page UI -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="fi.aalto.rtda.BluetoothTrainingActivity">
+    tools:context=".CalibrationActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/layout_toolbar"
@@ -21,11 +22,10 @@
 
     <!-- Login progress -->
     <ProgressBar
-        android:id="@+id/enable_bluetooth_progress"
+        android:id="@+id/progress_calibration"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
         android:visibility="gone"
         android:layout_centerInParent="true"/>
     <LinearLayout
@@ -33,39 +33,39 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginLeft="@dimen/margin_normal"
+        android:layout_marginRight="@dimen/margin_normal"
+        android:layout_marginTop="@dimen/margin_normal"
         android:layout_below="@id/layout_toolbar"
         android:visibility="gone">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/hint_enter_site_name"
-            android:textSize="14dp"/>
+            android:textSize="@dimen/textsize_normal"/>
         <TextView
-            android:id="@+id/allowed_devices_num"
+            android:id="@+id/text_allowed_devices_num"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="16dp"
-            android:textColor="@color/colorAccent"
+            android:textSize="@dimen/textsize_normal_plus"
+            android:textColor="@color/text_pink"
             android:textStyle="bold"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/hint_allowed_devices"
-            android:textSize="14dp"/>
+            android:textSize="@dimen/textsize_normal"/>
     </LinearLayout>
     <android.support.design.widget.TextInputLayout
         android:id="@+id/layout_site_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
+        android:layout_marginLeft="@dimen/margin_normal"
+        android:layout_marginRight="@dimen/margin_normal"
         android:layout_below="@id/layout_hint">
 
         <EditText
-            android:id="@+id/site_name"
+            android:id="@+id/input_site_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/prompt_site_name"
@@ -79,29 +79,29 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="10dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:layout_marginLeft="@dimen/margin_normal"
+        android:layout_marginRight="@dimen/margin_normal"
         android:orientation="vertical">
         <Button
-            android:id="@+id/stop_training_button"
+            android:id="@+id/button_end_calibration"
             style="?android:textAppearanceSmall"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/action_stop_training"
+            android:text="@string/button_end_calibration"
             android:textStyle="bold"
-            android:background="#009a9a"
-            android:textColor="#d9e5f3"
+            android:background="@color/button_enable"
+            android:textColor="@color/text_button_enable"
             android:letterSpacing="0.2"/>
         <Button
-            android:id="@+id/save_button"
+            android:id="@+id/button_save_site_devices"
             style="?android:textAppearanceSmall"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/action_save_allowed_devices"
+            android:text="@string/button_save_site_devices"
             android:textStyle="bold"
-            android:background="#009a9a"
-            android:textColor="#d9e5f3"
+            android:background="@color/button_enable"
+            android:textColor="@color/text_button_enable"
             android:letterSpacing="0.2"
             android:visibility="gone"/>
     </LinearLayout>
@@ -112,6 +112,6 @@
         android:layout_height="match_parent"
         android:layout_below="@id/layout_site_name"
         android:layout_above="@id/layout_icons"
-        android:layout_margin="16dp">
+        android:layout_margin="@dimen/margin_normal">
     </ListView>
 </RelativeLayout>

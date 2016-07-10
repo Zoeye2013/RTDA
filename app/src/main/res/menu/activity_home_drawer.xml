@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
+        android:id="@+id/nav_login"
+        android:icon="@drawable/ic_menu_login"
+        android:title="LogIn" />
+    <item
+        android:id="@+id/nav_logout"
+        android:icon="@drawable/ic_menu_logout"
+        android:title="Logout"
+        android:visible="false"/>
+    <item
         android:id="@+id/nav_settings"
         android:icon="@drawable/ic_menu_settings"
         android:title="Settings" />
@@ -8,10 +17,7 @@
         android:id="@+id/nav_profile"
         android:icon="@drawable/ic_menu_profile"
         android:title="User profile" />
-    <item
-        android:id="@+id/nav_logout"
-        android:icon="@drawable/ic_menu_logout"
-        android:title="Logout" />
+
     <!--<group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_camera"

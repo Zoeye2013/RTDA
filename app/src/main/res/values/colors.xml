@@ -1,23 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="button_enable">#009a9a</color>
+    <color name="text_button_enable">#d9e5f3</color>
+    <color name="background_text">#009a9a</color>
+    <color name="text_white">#fff</color>
+    <color name="text_pink">#FF4081</color>
 
-    <!-- Colors for drawing Real-time Chart -->
-    <color name="color1">#00ff00</color>
-    <color name="color2">#ffff00</color>
-    <color name="color3">#ffffff</color>
-    <color name="color4">#ff0000</color>
-    <color name="color5">#3399ff</color>
-    <color name="color6">#ff33cc</color>
-    <color name="color7">#009900</color>
-    <color name="color8">#ccccff</color>
-    <color name="color9">#80d4ff</color>
-    <color name="color10">#0000b3</color>
-    <color name="color11">#99ffcc</color>
-    <color name="color12">#804000</color>
-    <color name="color13">#ffb3ff</color>
-    <color name="color14">#ff9900</color>
-    <color name="color15">#6600cc</color>
+    <color name="button_disable">#009a9a</color>
+    <color name="checkbox_selected">#cdffe6</color>
 </resources>

@@ -296,7 +296,7 @@ public class MeasuringActivity extends AppCompatActivity implements AdapterView.
                 btService = ((BluetoothBackgroundService.BTServiceLocalBinder) service).getService();
                 measureManage = btService.getMeasureManage();
                 //uiOnMeasurementStatus();
-                devicesListView.setAdapter(measureManage.getSiteDevicesAdapter());
+                devicesListView.setAdapter(measureManage.getMeasurementDevicesAdapter());
                 isBind = true;
             }
 

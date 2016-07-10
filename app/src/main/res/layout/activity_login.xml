@@ -1,24 +1,14 @@
+<!-- Sign in Dialog UI -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
+    android:layout_height="wrap_content"
     tools:context="fi.aalto.rtda.LoginActivity">
 
-    <ImageView
-        android:id="@+id/logo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="64dp"
-        app:srcCompat="@drawable/logo"/>
-
-
-    <!-- Login progress -->
+    <!-- Progress bar showing login progress -->
     <ProgressBar
-        android:id="@+id/login_progress"
+        android:id="@+id/progress_login"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -26,22 +16,20 @@
         android:visibility="gone" />
 
     <LinearLayout
-        android:id="@+id/login_form"
+        android:id="@+id/form_login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/logo"
-        android:layout_marginTop="64dp"
-        android:layout_marginRight="36dp"
-        android:layout_marginLeft="36dp"
+        android:layout_marginTop="@dimen/margin_normal"
+        android:layout_marginRight="@dimen/margin_normal"
+        android:layout_marginLeft="@dimen/margin_normal"
         android:orientation="vertical">
 
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <AutoCompleteTextView
-                android:id="@+id/username"
+            <EditText
+                android:id="@+id/input_username"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/prompt_username"
@@ -55,50 +43,29 @@
             android:layout_height="wrap_content">
 
             <EditText
-                android:id="@+id/password"
+                android:id="@+id/input_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/prompt_password"
-                android:imeActionId="@+id/login"
-                android:imeActionLabel="@string/action_sign_in"
-                android:imeOptions="actionUnspecified"
                 android:inputType="textPassword"
                 android:maxLines="1"
                 android:singleLine="true" />
         </android.support.design.widget.TextInputLayout>
 
-        <LinearLayout
+        <Button
+            android:id="@+id/button_signin"
+            style="?android:textAppearanceSmall"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <Button
-                android:id="@+id/sign_in_button"
-                style="?android:textAppearanceSmall"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginRight="16dp"
-                android:layout_alignParentRight="true"
-                android:text="@string/action_sign_in"
-                android:textStyle="bold"
-                android:background="#009a9a"
-                android:textColor="#d9e5f3"
-                android:letterSpacing="0.2"/>
-            <Button
-                android:id="@+id/register_button"
-                style="?android:textAppearanceSmall"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginRight="16dp"
-                android:layout_toLeftOf="@+id/sign_in_button"
-                android:text="@string/action_register"
-                android:textStyle="bold"
-                android:background="#009a9a"
-                android:textColor="#d9e5f3"
-                android:letterSpacing="0.2"/>
-        </LinearLayout>
+            android:layout_marginTop="@dimen/margin_wide"
+            android:layout_marginRight="@dimen/margin_normal"
+            android:layout_marginBottom="@dimen/margin_wide"
+            android:layout_marginLeft="@dimen/margin_normal"
+            android:layout_alignParentRight="true"
+            android:text="@string/button_sign_in"
+            android:textStyle="bold"
+            android:background="@color/button_enable"
+            android:textColor="@color/text_button_enable"
+            android:letterSpacing="0.2"/>
     </LinearLayout>
 </RelativeLayout>

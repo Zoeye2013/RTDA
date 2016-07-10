@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Application Home Page UI -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/padding_normal"
+    android:paddingLeft="@dimen/padding_normal"
+    android:paddingRight="@dimen/padding_normal"
+    android:paddingTop="@dimen/padding_normal"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="fi.aalto.rtda.HomeActivity"
     tools:showIn="@layout/app_bar_home">
@@ -21,33 +22,33 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:textSize="28dp"
-            android:layout_marginBottom="24dp"
-            android:layout_marginTop="36dp"
-            android:text="@string/tutorial_title"/>
+            android:textSize="@dimen/textsize_large"
+            android:layout_marginBottom="@dimen/margin_wide"
+            android:layout_marginTop="@dimen/margin_large"
+            android:text="@string/title_tutorial_large"/>
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:layout_marginBottom="12dp"
-            android:layout_marginTop="22dp"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:layout_marginTop="@dimen/margin_normal"
             app:srcCompat="@drawable/ic_bluetooth"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:layout_marginBottom="12dp"
-            android:layout_marginTop="12dp"
-            android:textSize="18dp"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:layout_marginTop="@dimen/margin_small"
+            android:textSize="@dimen/textsize_medium"
             android:textStyle="bold"
-            android:text="@string/tutorial_content"/>
+            android:text="@string/title_tutorial_normal"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:layout_marginBottom="12dp"
-            android:layout_marginTop="12dp"
-            android:text="@string/tutorial_sub_content"/>
+            android:layout_marginBottom="@dimen/margin_small"
+            android:layout_marginTop="@dimen/margin_small"
+            android:text="@string/title_tutorial_small"/>
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
@@ -55,39 +56,27 @@
         android:orientation="horizontal"
         android:layout_alignParentBottom="true">
         <Button
-            android:id="@+id/start_training_button"
+            android:id="@+id/button_calibration"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:layout_marginRight="16dp"
-            android:text="@string/action_start_training"
+            android:layout_marginRight="@dimen/margin_normal"
+            android:text="@string/button_calibration"
             android:textStyle="bold"
-            android:background="#009a9a"
-            android:textColor="#d9e5f3"
-            android:letterSpacing="0.2"/>
-        <Button
-            android:id="@+id/start_measurement_button"
-            style="?android:textAppearanceSmall"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="@string/action_start_measurement"
-            android:textStyle="bold"
-            android:background="#009a9a"
-            android:textColor="#d9e5f3"
-            android:letterSpacing="0.2"/>
-        <Button
-            android:id="@+id/stop_measurement_button"
-            style="?android:textAppearanceSmall"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="@string/action_stop_training"
-            android:textStyle="bold"
-            android:background="#009a9a"
-            android:textColor="#d9e5f3"
+            android:background="@color/button_enable"
+            android:textColor="@color/text_button_enable"
             android:letterSpacing="0.2"
             android:visibility="gone"/>
-
+        <Button
+            android:id="@+id/button_measurement"
+            style="?android:textAppearanceSmall"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/button_measurement"
+            android:textStyle="bold"
+            android:background="@color/button_enable"
+            android:textColor="@color/text_button_enable"
+            android:letterSpacing="0.2"/>
     </LinearLayout>
 </RelativeLayout>
